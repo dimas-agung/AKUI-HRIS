@@ -1,0 +1,535 @@
+
+/* Style buttons */
+.buttonload {
+  background-color: #04AA6D; /* Green background */
+  border: none; /* Remove borders */
+  color: white; /* White text */
+  padding: 12px 16px; /* Some padding */
+  font-size: 16px /* Set a font size */
+}
+
+table.dataTable {
+   
+    font-size: 12px  !important;
+    font-weight: 200  !important;
+   
+}
+
+/*@import url("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css");*/
+ div.dataTables_wrapper div.dataTables_filter input {
+      width: 500px !important;
+  }
+
+@media (min-width: 568px){
+  div.dataTables_wrapper div.dataTables_filter input {
+      width: 400px !important;
+  }
+}
+
+/*@media (min-width: 468px){
+  div.dataTables_wrapper div.dataTables_filter input {
+      width: 200px !important;
+  }
+}*/
+ul.a {list-style-type: circle;}
+ul.b {list-style-type: square;}
+ol.c {list-style-type: upper-roman;}
+ol.d {list-style-type: lower-alpha;}
+
+.right {
+  float: right;
+  width: 300px;
+  border: 3px solid #73AD21;
+  padding: 10px;
+}
+
+
+.simpan_atur{
+  margin-top: 12px;
+    margin-left: -15px;
+}
+.blink {
+        animation: blinker 0.6s linear infinite;
+        
+        font-size: 12px;
+        font-weight: bold;
+            font-family: 'Source Sans Pro', 'Helvetica Neue', Helvetica, Arial, sans-serif
+      }
+      @keyframes blinker {
+        50% {
+          opacity: 0;
+        }
+      }
+      .blink-one {
+        animation: blinker-one 1.2s linear infinite;
+      }
+      @keyframes blinker-one {
+        0% {
+          opacity: 0;
+        }
+      }
+      .blink-two {
+        animation: blinker-two 1.8s linear infinite;
+      }
+      @keyframes blinker-two {
+        100% {
+          opacity: 0;
+        }
+      }
+
+.mt-comment-body .mt-comment-info .mt-comment-author {
+    display: inline-block;
+    float: left;
+    margin: 0 0 10px;
+    color: #060606;
+    font-weight: 600;
+}
+.mt-comment-body .mt-comment-text {
+    color: #999;
+}
+
+.fade-scale {
+  transform: scale(0);
+  opacity: 0;
+  -webkit-transition: all .25s linear;
+  -o-transition: all .25s linear;
+  transition: all .25s linear;
+}
+
+.fade-scale.in {
+  opacity: 1;
+  transform: scale(1);
+}
+.kuning {
+    color: #f39c12;
+}
+.merah {
+  color                : #D8000C;
+}
+
+.hijau {
+  color                : #00c292;
+}
+/*// ===================*/
+.no_online{
+    background-color: #f2f2f2;
+    border: 1px solid #e5e5e5;
+    padding: 15px 15px;
+    font-size: 13px;
+    
+}
+.online{
+    
+    padding: 5px 5px;
+    font-size: 13px;
+    
+}
+
+.portlet-title-atas{
+      padding: 5px 5px 5px 20px;
+}
+
+
+/* Warna Box */
+.alerts {
+    padding              : 0 20px 20px 20px;                 
+}
+.alerts-info {
+    padding              : 0 20px 20px 20px;                 
+}
+
+.info-msg {
+    color                : #00529B;
+    background-color     : #BDE5F8;                   
+}
+
+
+.info_default{
+  color: #1b211c;
+    background-color: #f2f2f2;
+    border: 1px solid #e5e5e5;
+    padding: 1px 5px;
+    
+}
+
+.info_delete{
+  color: #545151;
+   
+   padding              : 35px 20px 35px 20px;
+    
+}
+
+.warning-msg {
+    color                : #9f0f00;
+    background-color     : #f9dada;
+    border               : 1px solid #b1244b;
+}
+.welcome-msg {
+    color                : #354424;
+    font-size            : 12px;
+    background-color     : #D8F4CC;
+    border               : 1px solid #B3C8B7;
+}
+.modal-msg {
+    color: #1b211c;
+    background-color: #f2f2f2;
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 20px;
+}
+.success-msg {
+    color                : #466F80;
+    background-color     : #BFE3F2;
+    border               : 1px solid #439ABE;
+}
+.judul_bpjs_1{
+    color: #466F80;
+    width: 100%;
+    background-color: #BFE3F2;
+    border: 1px solid #439ABE;
+    padding: 10px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    font-size: 12px;
+    font-weight: normal;;
+}
+
+.karir{
+   color: #53545d;
+    width: 100%;
+    background-color: #f3f4f5;
+    border: 1px solid #e0e1e2;
+    
+    padding: 6px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    font-size: 12px;
+    font-weight: normal;;
+}
+
+.judul_bpjs_2{
+    color: #466F80;
+    width: 100%;
+    background-color: #D8F4CC;
+    border: 1px solid #B3C8B7;
+    padding: 10px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    font-size: 12px;
+    font-weight: normal;;
+}
+
+.error-msg {                
+    /*color                : #D8000C;*/
+    background-color     : #fcd9d9;                
+    border               : 1px solid #f03f6a;
+}
+.coklat {                
+   color                : #41404e;
+   font-weight: bold;
+  
+}
+
+.warna1{
+    /*background-color: #bfdabb;*/
+    /*border: 1px solid #275637 !important;*/
+    padding: 10px 0px 10px 0px;
+    border-bottom: 1px solid #c2cad8;
+    margin-bottom: 5px;
+}
+
+.warna2{
+    /*background-color: #bfdabb;*/
+    /*border: 1px solid #275637 !important;*/
+    padding: 10px 0px 10px 0px;
+}
+
+.well {
+  min-height: 20px;
+  padding: 19px;
+  margin-bottom: 20px;
+  background-color: #fff;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .05);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, .05);
+}
+.well-legend {
+  display: block;
+  font-size: 12px;
+  width: auto;
+  padding: 2px 7px 2px 5px;
+  margin-bottom: 5px;
+  line-height: inherit;
+  color: #333;
+  background: #fff;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, .05);
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .05);
+}
+
+#datatable{
+ 
+    td, th {
+        vertical-align: middle;
+    }
+}
+
+
+.ui-datepicker-calendar>tbody>tr>td.ui-datepicker-unselectable>span.ui-state-default:before{
+    bottom: 0;
+    content: "X";
+    height: 4px;
+    left: 7px;
+    margin: auto;
+    position: relative;
+    right: 0;
+    top: 0;
+    width: 4px;
+}
+
+
+.pull-left {
+    float: left !important;
+}
+
+/*.media {
+    height: 170px;
+}
+
+.media-left, .media>.pull-left {
+    padding-right: 10px;
+}*/
+
+.panel-title {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-size: 12px !important;
+    color: inherit;
+}
+
+.panel-judul {
+   padding: 5px;
+   background-color: #f5f5f5;
+    border-color: #ddd;
+}
+
+.row.no-gutters {
+  margin-right: 0;
+  margin-left: 0;
+}
+.row.no-gutters > [class^="col-"],
+.row.no-gutters > [class*=" col-"] {
+  padding-right: 0;
+  padding-left: 0;
+}
+
+.dikunci{
+  background-color: #eef1f5 !important;
+}
+.pengajuan{
+  background-color: #ecf5cc !important;
+  color : #454640 !important;
+  border-color: #adb19e !important;
+}
+.foto-personalia {
+    width: 100px;
+   
+    padding: 4px;
+    height: 137.5px;
+    line-height: 1.42857143;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    -webkit-transition: all .2s ease-in-out;
+    -o-transition: all .2s ease-in-out;
+    transition: all .2s ease-in-out;
+    display: inline-block;
+    height: auto;
+}
+
+.lebar{
+  min-width: 120px;
+}
+
+.jarak{
+  margin-right: 5px;
+}
+
+.turun{
+  margin-bottom: 10px;
+}
+
+.data_karyawan{
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.form_atur {
+  margin-top: 5px;
+    padding: 10px;
+   
+    border: 1px solid #dbdfe2;
+    /*background-color: #e7ecf1;*/
+}
+
+.input-cont {
+  position: relative;
+  display: inline-block;
+}
+
+.input-cont a {
+  position: absolute;
+  right: 0;
+  top: 13px;
+}
+
+.jarak_title {
+ margin-top: 3px;
+    margin-bottom: 3px;
+   
+    /*background-color: #e7ecf1;*/
+}
+
+.jarak_title_sub {
+ margin-top: 5px;
+    margin-bottom: 5px;
+   font-size: 11px;
+    /*background-color: #e7ecf1;*/
+}
+
+.atur_tab{
+      padding: 5px;
+    margin-top: 10px;
+}
+.judul_jarak {
+  
+     font-size: 14px  !important;
+}
+
+
+.judul_form {
+    margin-top: 5px;
+    padding: 10px;
+   
+  
+    /*background-color: #e7ecf1;*/
+}
+/* ---------------- */
+#person_basic_detail_explanation .info-id strong {
+  
+    font-size: 14px;
+    line-height: 18px;
+    padding: 10px 0;
+}
+
+#person_basic_detail_explanation .info-id {
+    color: #5A5655;
+}
+
+#person_basic_detail_explanation .kotak-info {
+    padding-top: 5px;
+    margin-right: -100px;
+    font-size: 12px;
+}
+
+#person_basic_detail_explanation .kotak-info .col-sm-2 {
+    padding-left: 2px;
+    padding-right: 2px;
+}
+
+#person_basic_detail_explanation .kotak-default {
+    position: relative;
+    width: 100%;
+    /*height: 105px;*/
+   
+   
+    padding-left: 8px;
+    padding-right: 8px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+
+    background-color: #f3f4f5;
+    color: #758076;
+    border: 1px solid !important;
+    border-color: #e0e1e2 !important;
+        margin-bottom: 5px;
+    /*letter-spacing: 1px;*/
+}
+
+#person_basic_detail_explanation img {
+    width: 150px;
+    height: auto;
+}
+
+.img-thumbnail {
+    padding: 4px;
+    line-height: 1.42857;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    -webkit-transition: all .2s ease-in-out;
+    -o-transition: all .2s ease-in-out;
+    transition: all .2s ease-in-out;
+    display: inline-block;
+    max-width: 100%;
+    height: auto;
+}
+.padding-0{
+    padding-right:0;
+    padding-left:0;
+}
+
+#person_basic_detail_explanation .kotak-lancip {
+    position: relative;
+    width: 100%;
+    height: 105px;
+    background: #0168b3;
+    color: #fff;
+    padding-left: 8px;
+    padding-right: 8px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+#person_basic_detail_explanation .kotak-lancip:after {
+    content: " ";
+    width: 0;
+    height: 105px;
+    display: inline-block;
+    border-color: transparent;
+    border-style: solid;
+    border-width: 53px;
+    border-left-color: #0168b3;
+    position: absolute;
+    top: 0;
+    right: -106px;
+}
+
+@media (max-width: 1200px)
+.lihat-data-personalia #daftar-personalia img {
+    display: block !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    float: none !important;
+}
+
+.scroll{
+    display:block;
+    border: 1px solid red;
+    padding:5px;
+    margin-top:5px;
+    width:300px;
+    height:50px;
+    overflow:scroll;
+}
+.auto{
+     display:block;
+     border: 1px solid red;
+     padding:5px;
+     margin-top:5px;
+     width:300px;
+     height:50px;
+     overflow:auto;
+}
