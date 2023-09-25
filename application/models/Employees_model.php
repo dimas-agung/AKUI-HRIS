@@ -434,10 +434,28 @@ class Employees_model extends CI_Model
     }
 
 
+    // public function get_attendance_jenis_gaji_employees_reguler_load($jenis_gaji, $company_id)
+    // {
+
+    //     $sql = 'SELECT * FROM view_karyawan_aktif WHERE wages_type = ? and company_id = ? and office_id ="R" and is_active = ? order by date_of_joining desc';
+    //     $binds = array($jenis_gaji, $company_id, 1);
+    //     $query = $this->db->query($sql, $binds);
+
+    //     // echo "<pre>";
+    //     // print_r($this->db->last_query());
+    //     // echo "</pre>";
+    //     // die();
+
+    //     return $query;
+    // }
     public function get_attendance_jenis_gaji_employees_reguler_load($jenis_gaji, $company_id)
     {
 
-        $sql = 'SELECT * FROM view_karyawan_aktif WHERE wages_type = ? and company_id = ? and office_id ="R" and is_active = ? order by date_of_joining desc';
+        $sql = 'SELECT kry.*,company.name as company_name,designation.designation_name as designation_name FROM view_karyawan_aktif  as kry
+                        LEFT JOIN xin_companies as company ON kry.company_id = company.company_id
+                        LEFT JOIN xin_designations as designation ON designation.designation_id = kry.designation_id
+                        WHERE kry.wages_type = ? and kry.company_id = ? and kry.office_id ="R" and kry.is_active = ? 
+                        order by kry.date_of_joining desc';
         $binds = array($jenis_gaji, $company_id, 1);
         $query = $this->db->query($sql, $binds);
 
@@ -565,10 +583,29 @@ class Employees_model extends CI_Model
         return $query;
     }
 
+    // public function get_attendance_jenis_gaji_employees_shift_load($jenis_gaji, $company_id)
+    // {
+
+    //     $sql = 'SELECT * FROM view_karyawan_aktif WHERE wages_type = ? and company_id = ? and office_id ="S" and is_active = ? order by date_of_joining desc';
+    //     $binds = array($jenis_gaji, $company_id, 1);
+    //     $query = $this->db->query($sql, $binds);
+
+    //     // echo "<pre>";
+    //     // print_r($this->db->last_query());
+    //     // echo "</pre>";
+    //     // die();
+
+    //     return $query;
+    // }
+
     public function get_attendance_jenis_gaji_employees_shift_load($jenis_gaji, $company_id)
     {
 
-        $sql = 'SELECT * FROM view_karyawan_aktif WHERE wages_type = ? and company_id = ? and office_id ="S" and is_active = ? order by date_of_joining desc';
+        $sql = 'SELECT kry.*,company.name as company_name,designation.designation_name as designation_name FROM view_karyawan_aktif  as kry
+                        LEFT JOIN xin_companies as company ON kry.company_id = company.company_id
+                        LEFT JOIN xin_designations as designation ON designation.designation_id = kry.designation_id
+                        WHERE kry.wages_type = ? and kry.company_id = ? and kry.office_id ="S" and kry.is_active = ? 
+                        order by kry.date_of_joining desc';
         $binds = array($jenis_gaji, $company_id, 1);
         $query = $this->db->query($sql, $binds);
 
