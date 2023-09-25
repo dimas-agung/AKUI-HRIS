@@ -106,12 +106,12 @@ class Timesheet extends MY_Controller
         $dataInsert = [];
         
         foreach ($employee->result() as $r) {
-
+            
             $sql1 = "DELETE FROM xin_attendance_time WHERE 1=1
                             AND employee_id ='" . $r->user_id . "' AND  attendance_date = '" . $attendance_date . "'  ";
 
             $query1   = $this->db->query($sql1);
-
+           
             $comp_name = $r->company_name;
             $designation_name = $r->designation_name;
             // user full name
@@ -129,7 +129,12 @@ class Timesheet extends MY_Controller
             // CEK HARI LIBUR
             // =========================================================================================================
             $check_hari_libur = $this->check_hari_libur($r->company_id,$attendance_date);
-            if ($check_hari_libur['status'] == true) {
+            if ($r->flag == 1) {
+
+                $attendance_status                = 'Free';
+                $attendance_simbol         = 'F';
+                $attendance_keterangan = 'Bebas Tanpa Absensi Mesin Finger';
+            }else if ($check_hari_libur['status'] == true) {
                 $attendance_status = $check_hari_libur['attendance_status'];
                 $attendance_simbol = $check_hari_libur['attendance_simbol'];
                 $attendance_keterangan = $check_hari_libur['attendance_keterangan'];
@@ -419,7 +424,12 @@ class Timesheet extends MY_Controller
             // CEK HARI LIBUR
             // =========================================================================================================
             $check_hari_libur = $this->check_hari_libur($r->company_id,$attendance_date);
-            if ($check_hari_libur['status'] == true) {
+            if ($r->flag == 1) {
+
+                $attendance_status                = 'Free';
+                $attendance_simbol         = 'F';
+                $attendance_keterangan = 'Bebas Tanpa Absensi Mesin Finger';
+            } elseif ($check_hari_libur['status'] == true) {
                 $attendance_status = $check_hari_libur['attendance_status'];
                 $attendance_simbol = $check_hari_libur['attendance_simbol'];
                 $attendance_keterangan = $check_hari_libur['attendance_keterangan'];
