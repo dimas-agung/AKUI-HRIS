@@ -244,7 +244,7 @@ class Reports extends MY_Controller
 
             $grade_status = '<span class="' . $jenis_grade_warna . '">' . $jenis_grade . '</sapan>';
 
-            $rekening = $this->Employees_model->get_employee_bank_account_last($r->employee_id);
+            $rekening = $this->Employees_model->get_employee_bank_account_last($r->user_id);
             if (!is_null($rekening)) {
                 $rekening_name = $rekening[0]->account_number;
                 $bank_name = $rekening[0]->bank_name;
