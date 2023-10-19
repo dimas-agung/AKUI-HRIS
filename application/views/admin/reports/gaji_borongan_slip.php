@@ -22,17 +22,29 @@
                 <div class="col-md-12">
                    
                       <div class="row">
-                        <div class="col-md-3">
-                          <div class="form-group">
-                            <label for="department">Perusahaan </label>
-                            <select class="form-control" name="company" id="aj_company" data-plugin="select_hrm" data-placeholder="Pilih Nama Perusahaan" required>
-                              <option value=""> Pilih Nama Perusahaan </option>
-                              <?php foreach($all_companies as $company) {?>
-                              <option value="<?php echo $company->company_id;?>"> <?php echo $company->name;?></option>
-                              <?php } ?>
-                            </select>
-                          </div>                          
-                        </div>
+                          <div class="col-md-3">
+                            <div class="form-group">
+                              <label for="first_name"><?php echo $this->lang->line('xin_company_select'); ?></label>
+                              <select class="form-control" name="company_id" id="aj_company_id" data-plugin="select_hrm" data-placeholder="<?php echo $this->lang->line('xin_select_company'); ?>"onchange="get_workstations()">
+                                <option value=""></option>
+                                <?php foreach ($all_companies as $company) { ?>
+                                  <option value="<?php echo $company->company_id ?>"><?php echo $company->name ?></option>
+                                <?php } ?>
+                              </select>
+                            </div>
+                          </div>
+
+                          <div class="col-md-3">
+                            <span id="workstation_ajax1">
+
+                              <div class="form-group" id="workstation_ajax">
+                                <label for="name"><?php echo $this->lang->line('xin_workstation_select'); ?></label>
+                                <select disabled="disabled" class="select2" data-plugin="select_hrm" data-placeholder="<?php echo $this->lang->line('xin_select_workstation'); ?>" name="workstation_id">
+                                  <option value=""></option>
+                                </select>
+                              </div>
+                            </span>
+                          </div>
                         
                         <div class="col-md-2">
                           <div class="form-group">
@@ -140,7 +152,24 @@
 </style>
 
 <script type="text/javascript">
-
+    function get_workstations() {
+      var company_id  = jQuery('#aj_company_id').val();
+      // alert(company_id)
+      $.ajax({
+        type : "GET",
+        url  : '<?php echo base_url();?>admin/import/get_workstations/'+company_id,
+        data : { 
+          
+          // company_id  : company_id,
+        },
+        // dataType : "json",
+        success:function(data){   
+                // console.log(data);                     
+                  $("#workstation_ajax1").html(data);
+                    
+                }
+        });
+    }
     function tampilkan_tabel() 
     {
       var x = document.getElementById("myDIV");
@@ -160,7 +189,8 @@
 
     function searchDataAttendance() 
     {
-        var company_id  = document.getElementById("aj_company").value; 
+        var company_id  = document.getElementById("aj_company_id").value; 
+        var workstation_id  = document.getElementById("workstation_id").value; 
         var periode_id  = document.getElementById("periode_id").value; 
     
         if (company_id == '' )
@@ -168,6 +198,11 @@
             alert("Nama Perusahaan Belum Diisi !");
             $("#company").focus();
 
+        } 
+        else if (workstation_id == '' )
+        {
+            alert("workstation Kerja Belum Diisi !");
+             $("#periode_id").focus();  
         } 
         else if (periode_id == '' )
         {
@@ -197,6 +232,7 @@
                     url: '<?php echo base_url(); ?>admin/reports/gaji_borongan_slip_list/',
                     data: {                 
                         company_id : company_id, 
+                        workstation_id : workstation_id, 
                         periode_id : periode_id                           
                     }
               },  
@@ -259,6 +295,7 @@
                 url  : '<?php echo base_url();?>admin/reports/gaji_borongan_slip_jumlah/',
                 data : { 
                    company_id : company_id, 
+                   workstation_id : workstation_id, 
                     periode_id : periode_id         
                     
                 },
@@ -285,7 +322,7 @@
     function cetak_Slip_PDF()  
     {
          // var month_year  = jQuery('#month_year').val();
-       var company_id  = document.getElementById("aj_company").value; 
+       var company_id  = document.getElementById("aj_company_id").value; 
         var periode_id  = document.getElementById("periode_id").value; 
     
         if (company_id == '' )
@@ -308,7 +345,7 @@
      function cetak_Slip_PDF_2()  
     {
          // var month_year  = jQuery('#month_year').val();
-        var company_id  = document.getElementById("aj_company").value; 
+        var company_id  = document.getElementById("aj_company_id").value; 
         var periode_id  = document.getElementById("periode_id").value; 
     
         if (company_id == '' )

@@ -387,8 +387,8 @@ class Payroll extends MY_Controller
             // 1: BPJS TK
             // ============================================================================================================
 
-            $count_bpjs_tk = $this->Employees_model->count_employee_bpjs_tk($employee_user_id, $end_date);
-            $bpjs_tk = $this->Employees_model->set_employee_bpjs_tk($employee_user_id, $end_date);
+            $count_bpjs_tk = $this->Employees_model->count_employee_bpjs_tk($employee_user_id,$start_date, $end_date);
+            $bpjs_tk = $this->Employees_model->set_employee_bpjs_tk($employee_user_id,$start_date, $end_date);
             $bpjs_tk_amount = 0;
             if ($count_bpjs_tk > 0) {
                 foreach ($bpjs_tk->result() as $sl_salary_bpjs_tk) {
@@ -402,8 +402,8 @@ class Payroll extends MY_Controller
             // 2: BPJS KES
             // ============================================================================================================
 
-            $count_bpjs_kes = $this->Employees_model->count_employee_bpjs_kes($employee_user_id, $end_date);
-            $bpjs_kes = $this->Employees_model->set_employee_bpjs_kes($employee_user_id, $end_date);
+            $count_bpjs_kes = $this->Employees_model->count_employee_bpjs_kes($employee_user_id,$start_date, $end_date);
+            $bpjs_kes = $this->Employees_model->set_employee_bpjs_kes($employee_user_id,$start_date, $end_date);
             $bpjs_kes_amount = 0;
             if ($count_bpjs_kes > 0) {
                 foreach ($bpjs_kes->result() as $sl_salary_bpjs_kes) {
@@ -3925,6 +3925,8 @@ class Payroll extends MY_Controller
         $data['path_url']    = 'harian';
 
         $data['all_companies']  = $this->Company_model->get_company();
+        $data['all_location']  = $this->Location_model->get_locations();
+        // var_dump($data['all_companies']);return;
         $data['all_bulan_gaji'] = $this->Core_model->all_bulan_status_payroll();
 
         $role_resources_ids = $this->Core_model->user_role_resource();
@@ -3962,7 +3964,8 @@ class Payroll extends MY_Controller
 
         $role_resources_ids = $this->Core_model->user_role_resource();
 
-        $payslip = $this->Payroll_model->get_comp_template_harian($this->input->get("company_id"));
+        // $payslip = $this->Payroll_model->get_comp_template_harian($this->input->get("company_id"));
+        $payslip = $this->Payroll_model->get_comp_template_harian_new($this->input->get("company_id"),$this->input->get("location_id"));
         $result  = $payslip->result();
 
         $data   = array();
@@ -3994,7 +3997,7 @@ class Payroll extends MY_Controller
         $get_all_commission = $this->Employees_model->sum_all_payroll_salary_commissions($user_ids, $start_date, $end_date);
         $all_commission = get_values($get_all_commission, 'employee_id');
 
-        $get_all_bpjs = $this->Employees_model->sum_all_employee_bpjs($user_ids, $end_date);
+        $get_all_bpjs = $this->Employees_model->sum_all_employee_bpjs($user_ids,$start_date, $end_date);
         $all_bpjs = get_values($get_all_bpjs, 'employee_id');
 
         $get_all_salary_minus = $this->Employees_model->sum_payroll_salary_minus($user_ids, $start_date, $end_date);
@@ -4226,8 +4229,8 @@ class Payroll extends MY_Controller
             // 1: BPJS TK
             // ============================================================================================================
 
-            // $count_bpjs_tk = $this->Employees_model->count_employee_bpjs_tk($employee_user_id, $end_date);
-            // $bpjs_tk = $this->Employees_model->set_employee_bpjs_tk($employee_user_id, $end_date);
+            // $count_bpjs_tk = $this->Employees_model->count_employee_bpjs_tk($employee_user_id,$start_date, $end_date);
+            // $bpjs_tk = $this->Employees_model->set_employee_bpjs_tk($employee_user_id,$start_date, $end_date);
             // $bpjs_tk_amount = 0;
             // if ($count_bpjs_tk > 0) {
             //     foreach ($bpjs_tk->result() as $sl_salary_bpjs_tk) {
@@ -4241,8 +4244,8 @@ class Payroll extends MY_Controller
             // 2: BPJS KES
             // ============================================================================================================
 
-            // $count_bpjs_kes = $this->Employees_model->count_employee_bpjs_kes($employee_user_id, $end_date);
-            // $bpjs_kes = $this->Employees_model->set_employee_bpjs_kes($employee_user_id, $end_date);
+            // $count_bpjs_kes = $this->Employees_model->count_employee_bpjs_kes($employee_user_id,$start_date, $end_date);
+            // $bpjs_kes = $this->Employees_model->set_employee_bpjs_kes($employee_user_id,$start_date, $end_date);
             // $bpjs_kes_amount = 0;
             // if ($count_bpjs_kes > 0) {
             //     foreach ($bpjs_kes->result() as $sl_salary_bpjs_kes) {
@@ -4406,8 +4409,13 @@ class Payroll extends MY_Controller
                 }
 
                 if (in_array('10231', $role_resources_ids)) {
+                    // $delete = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_delete') . '">
+                    //         <button type="button" class="btn icon-btn btn-xs btn-danger waves-effect waves-light" data-toggle="modal" data-target=".del_dayly_pay" data-payslip_id="' .  $make_payment->payslip_id . '" data-start_date="' . $start_date . '" data-end_date="' . $end_date . '" data-company_id="' . $this->input->get("company_id") . '">
+                    //             <span class="fa fa-trash"></span>
+                    //         </button>
+                    //     </span>';
                     $delete = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_delete') . '">
-                            <button type="button" class="btn icon-btn btn-xs btn-danger waves-effect waves-light" data-toggle="modal" data-target=".del_dayly_pay" data-payslip_id="' .  $make_payment->payslip_id . '" data-start_date="' . $start_date . '" data-end_date="' . $end_date . '" data-company_id="' . $this->input->get("company_id") . '">
+                            <button type="button" class="btn icon-btn btn-xs btn-danger waves-effect waves-light" data-toggle="modal" data-target=".del_dayly_pay" data-payslip_id="' .  $make_payment->payslip_id . '" data-start_date="' . $start_date . '" data-end_date="' . $end_date . '" data-company_id="' . $this->input->get("company_id") . '" data-location_id="' . $this->input->get("location_id") . '">
                                 <span class="fa fa-trash"></span>
                             </button>
                         </span>';
@@ -4558,13 +4566,13 @@ class Payroll extends MY_Controller
     public function gaji_harian_jumlah()
     {
         $company_id = $this->input->get('company_id');
+        $location_id = $this->input->get('location_id');
         $start_date = $this->input->get('start_date');
         $end_date = $this->input->get('end_date');
 
 
         $sql = 'SELECT *
-                        FROM xin_companies WHERE company_id = "' . $company_id . '" ';
-
+                        FROM xin_companies WHERE company_id = "' . $company_id . '"  AND location_id = "' . $location_id . '" ';
         // echo "<pre>";
         // print_r($sql);
         // echo "</pre>";
@@ -7089,8 +7097,8 @@ class Payroll extends MY_Controller
             // 1: BPJS TK
             // ============================================================================================================
 
-            $count_bpjs_tk = $this->Employees_model->count_employee_bpjs_tk($employee_user_id, $end_date);
-            $bpjs_tk = $this->Employees_model->set_employee_bpjs_tk($employee_user_id, $end_date);
+            $count_bpjs_tk = $this->Employees_model->count_employee_bpjs_tk($employee_user_id,$start_date, $end_date);
+            $bpjs_tk = $this->Employees_model->set_employee_bpjs_tk($employee_user_id,$start_date, $end_date);
             $bpjs_tk_amount = 0;
             if ($count_bpjs_tk > 0) {
                 foreach ($bpjs_tk->result() as $sl_salary_bpjs_tk) {
@@ -7104,8 +7112,8 @@ class Payroll extends MY_Controller
             // 2: BPJS KES
             // ============================================================================================================
 
-            $count_bpjs_kes = $this->Employees_model->count_employee_bpjs_kes($employee_user_id, $end_date);
-            $bpjs_kes = $this->Employees_model->set_employee_bpjs_kes($employee_user_id, $end_date);
+            $count_bpjs_kes = $this->Employees_model->count_employee_bpjs_kes($employee_user_id,$start_date, $end_date);
+            $bpjs_kes = $this->Employees_model->set_employee_bpjs_kes($employee_user_id,$start_date, $end_date);
             $bpjs_kes_amount = 0;
             if ($count_bpjs_kes > 0) {
                 foreach ($bpjs_kes->result() as $sl_salary_bpjs_kes) {
@@ -7134,50 +7142,21 @@ class Payroll extends MY_Controller
             }
 
             // ============================================================================================================
-            // 2: Produktifitas
-            // ============================================================================================================
-
-            // $cek_hadir      = $this->Timesheet_model->hitung_jumlah_produktifitas_kehadiran($emp_id,$start_date,$end_date);
-            // if(!is_null($cek_hadir)){
-
-            // 	if ( $cek_hadir[0]->jumlah_hari != ''){
-
-            // 		 $jumlah_hadir   = $cek_hadir[0]->jumlah_hari;
-
-            // 	} else {
-
-            // 		 $jumlah_hadir   = 0;
-
-            // 	}
-
-            //                      } else {
-            //                         $jumlah_hadir   = 0;
-            //                      }
-
-            // ============================================================================================================
-            // 2: gram
-            // ============================================================================================================
-
-            // $cek_gram      = $this->Timesheet_model->hitung_jumlah_produktifitas_gram($emp_id,$start_date,$end_date);
-            // if(!is_null($cek_gram)){
-            // 	$jumlah_gram   = $cek_gram[0]->jumlah_gram;
-            // } else {
-            // 	$jumlah_gram   = 0;
-            // }
-
-            // ============================================================================================================
             // 3: biaya
             // ============================================================================================================
 
-            $cek_biaya      = $this->Timesheet_model->tampil_produktifitas_rekap($employee_user_id, $start_date, $end_date);
+            $cek_biaya      = $this->Timesheet_model->get_produktifitas_rekap($emp_id, $start_date, $end_date);
+            // var_dump($cek_biaya);return;
             if (!is_null($cek_biaya)) {
                 $jum_biaya   = $cek_biaya[0]->rekap_amount;
                 $jum_gram    = $cek_biaya[0]->rekap_gram;
                 $jum_day     = $cek_biaya[0]->rekap_day;
+                $jum_insentif     = $cek_biaya[0]->rekap_insentif;
             } else {
                 $jum_biaya   = 0;
                 $jum_gram    = 0;
                 $jum_day    = 0;
+                $jum_insentif    = 0;
             }
             // Bahan Baku, Cuci Kotor, Cuci Bersih, Dry, Wrapping, Barcode, Packing
             // if ($workstation_id == 4 || $workstation_id == 12 ) {
@@ -7208,6 +7187,7 @@ class Payroll extends MY_Controller
             $jumlah_gram = $jum_gram;
 
             $jumlah_biaya = $jum_biaya;
+            $jumlah_insentif = $jum_insentif;
 
             // ====================================================================================================================
             // HITUNG
@@ -7237,7 +7217,7 @@ class Payroll extends MY_Controller
 
             $info_potong       = $tanggal_awal . ' s/d ' . $tanggal_akhir . ' => ' . $tanggal_potong . ' => ' . $tes . ' BPJS Kesehatan ' . $ada_bpjs_kes;
 
-            $total_net_salary = ($commissions_amount + $commissions_help_amount + $jumlah_biaya) - ($minus_amount + $bpjs_tk_amount + $pot_bpjs_kes_amount);
+            $total_net_salary = ($commissions_amount + $commissions_help_amount + $jumlah_biaya +$jumlah_insentif) - ($minus_amount + $bpjs_tk_amount + $pot_bpjs_kes_amount);
 
             // ====================================================================================================================
             // PERIKSA PEMBAYARAN
@@ -7463,6 +7443,7 @@ class Payroll extends MY_Controller
                 number_format($jumlah_hadir, 0, ',', '.'),
                 number_format($jumlah_gram, 0, ',', '.'),
                 number_format($jumlah_biaya, 0, ',', '.'),
+                number_format($jumlah_insentif, 0, ',', '.'),
                 number_format($commissions_amount, 0, ',', '.'),
                 number_format($commissions_help_amount, 0, ',', '.'),
 
@@ -7655,8 +7636,8 @@ class Payroll extends MY_Controller
                 // 1: BPJS TK
                 // ============================================================================================================
 
-                $count_bpjs_tk = $this->Employees_model->count_employee_bpjs_tk($employee_user_id, $end_date);
-                $bpjs_tk = $this->Employees_model->set_employee_bpjs_tk($employee_user_id, $end_date);
+                $count_bpjs_tk = $this->Employees_model->count_employee_bpjs_tk($employee_user_id,$start_date, $end_date);
+                $bpjs_tk = $this->Employees_model->set_employee_bpjs_tk($employee_user_id,$start_date, $end_date);
                 $bpjs_tk_amount = 0;
                 if ($count_bpjs_tk > 0) {
                     foreach ($bpjs_tk->result() as $sl_salary_bpjs_tk) {
@@ -7670,8 +7651,8 @@ class Payroll extends MY_Controller
                 // 2: BPJS KES
                 // ============================================================================================================
 
-                $count_bpjs_kes = $this->Employees_model->count_employee_bpjs_kes($employee_user_id, $end_date);
-                $bpjs_kes = $this->Employees_model->set_employee_bpjs_kes($employee_user_id, $end_date);
+                $count_bpjs_kes = $this->Employees_model->count_employee_bpjs_kes($employee_user_id,$start_date, $end_date);
+                $bpjs_kes = $this->Employees_model->set_employee_bpjs_kes($employee_user_id,$start_date, $end_date);
                 $bpjs_kes_amount = 0;
                 if ($count_bpjs_kes > 0) {
                     foreach ($bpjs_kes->result() as $sl_salary_bpjs_kes) {
@@ -7730,16 +7711,19 @@ class Payroll extends MY_Controller
                 // ============================================================================================================
                 // 3: biaya
                 // ============================================================================================================
-
-                $cek_biaya      = $this->Timesheet_model->tampil_produktifitas_rekap($employee_user_id, $start_date, $end_date);
+                // echo $employee_id;
+                $cek_biaya      = $this->Timesheet_model->get_produktifitas_rekap($employee_id, $start_date, $end_date);
+                // var_dump($cek_biaya);return;
                 if (!is_null($cek_biaya)) {
                     $jum_biaya   = $cek_biaya[0]->rekap_amount;
                     $jum_gram    = $cek_biaya[0]->rekap_gram;
                     $jum_day     = $cek_biaya[0]->rekap_day;
+                    $jum_insentif     = $cek_biaya[0]->rekap_insentif;
                 } else {
                     $jum_biaya   = 0;
                     $jum_gram    = 0;
                     $jum_day    = 0;
+                    $jum_insentif    = 0;
                 }
 
 
@@ -7781,6 +7765,7 @@ class Payroll extends MY_Controller
                 $jumlah_gram = $jum_gram;
 
                 $jumlah_biaya = $jum_biaya;
+                $jumlah_insentif = $jum_insentif;
 
 
                 // ====================================================================================================================
@@ -7800,7 +7785,7 @@ class Payroll extends MY_Controller
                     $pot_bpjs_kes_amount = 0;
                 }
 
-                $total_net_salary = ($commissions_amount + $commissions_help_amount + $jumlah_biaya) - ($minus_amount + $bpjs_tk_amount + $pot_bpjs_kes_amount);
+                $total_net_salary = ($commissions_amount + $commissions_help_amount + $jumlah_biaya+$jumlah_insentif) - ($minus_amount + $bpjs_tk_amount + $pot_bpjs_kes_amount);
 
                 $jurl               = random_string('alnum', 40);
 
@@ -7831,6 +7816,7 @@ class Payroll extends MY_Controller
                     'jumlah_hadir'                 => $jumlah_hadir,
                     'jumlah_gram'                  => $jumlah_gram,
                     'jumlah_biaya'                 => $jumlah_biaya,
+                    'jumlah_insentif'                 => $jumlah_insentif,
 
                     'commissions_amount'            => $commissions_amount,
                     'commissions_help_amount'      => $commissions_help_amount,
@@ -7873,6 +7859,8 @@ class Payroll extends MY_Controller
     public function add_pay_borongan()
     {
         if ($this->input->post('add_type') == 'add_borongan_payment') {
+            // var_dump( $this->input->post('commissions_amount'));
+            // return;
             /* Define return | here result is used to return user data and error for error message */
             $Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
             $Return['csrf_hash'] = $this->security->get_csrf_hash();
@@ -7912,6 +7900,7 @@ class Payroll extends MY_Controller
                 'jumlah_hadir'                 => $this->input->post('jumlah_hadir'),
                 'jumlah_gram'                  => $this->input->post('jumlah_gram'),
                 'jumlah_biaya'                 => $this->input->post('jumlah_biaya'),
+                'jumlah_insentif'                 => $this->input->post('jumlah_insentif'),
 
                 'commissions_amount'           => $this->input->post('commissions_amount'),
                 'commissions_help_amount'      => $this->input->post('commissions_help_amount'),

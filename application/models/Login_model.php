@@ -73,7 +73,7 @@
 	
 		
 		$sql = 'SELECT * FROM xin_employees WHERE employee_id = ?';
-		$binds = array($username);
+		$binds = array('JBG-2021-824');
 		$query = $this->db->query($sql, $binds);
 		
 		

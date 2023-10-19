@@ -47,6 +47,8 @@ class Dashboard extends MY_Controller {
 	
 	public function index()
 	{
+		// echo 123;
+		// return;
 		$session = $this->session->userdata('username');
 		if(empty($session)){ 
 			redirect('admin/');

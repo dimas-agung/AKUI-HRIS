@@ -43,8 +43,6 @@ class Rekap extends MY_Controller
     public function index()
     {
 
-
-
         $session = $this->session->userdata('username');
         if (empty($session)) {
             redirect('admin/');
@@ -115,11 +113,13 @@ class Rekap extends MY_Controller
                 $full_name      = $user_info[0]->first_name . ' ' . $user_info[0]->last_name;
                 $department_id  = $user_info[0]->department_id;
                 $designation_id = $user_info[0]->designation_id;
+                $start_join = $user_info[0]->date_of_joining;
             } else {
                 $user_id        = '';
                 $emp_nik        = '';
                 $full_name      = '';
                 $department_id  = '';
+                $designation_id = '';
                 $designation_id = '';
             }
 
@@ -175,8 +175,19 @@ class Rekap extends MY_Controller
             // $query_job = $this->db->query($sql_job);
             $query_job = $this->Payroll_model->view_gram_produktifitas($r->employee_id, $start_date, $end_date);
 
-            $total_gram = $total_jumlah_gram = $total_biaya = $jumlah_hadir = 0;
+            // $total_gram = $total_jumlah_gram = $total_biaya = $jumlah_hadir = $total_insentif = 0 ;
+            $total_gram = $total_jumlah_gram = $total_biaya = $jumlah_hadir = $total_insentif = 0 ;
             if ($query_job->num_rows() > 0) {
+                // $job = "<table class=\"datatables-demo table table-striped table-bordered\" id=\"xin_table\">
+                //     <thead>
+                //         <tr>
+                //         <th class=\"text-center\" width=\"50px\">No.</th>
+                //         <th class=\"text-center\" width=\"30%\"> Tanggal </th>
+                //         <th class=\"text-center\" width=\"30%\"> Jumlah (Gram)</th>
+                //         <th class=\"text-center\" width=\"30%\"> Ongkos (Rp)</th>
+                //         </tr>
+                //     </thead>
+                // <tbody>";
                 $job = "<table class=\"datatables-demo table table-striped table-bordered\" id=\"xin_table\">
                     <thead>
                         <tr>
@@ -184,6 +195,7 @@ class Rekap extends MY_Controller
                         <th class=\"text-center\" width=\"30%\"> Tanggal </th>
                         <th class=\"text-center\" width=\"30%\"> Jumlah (Gram)</th>
                         <th class=\"text-center\" width=\"30%\"> Ongkos (Rp)</th>
+                        <th class=\"text-center\" width=\"30%\"> Insentif (Rp)</th>
                         </tr>
                     </thead>
                 <tbody>";
@@ -191,6 +203,7 @@ class Rekap extends MY_Controller
                 $total_biaya = 0;
                 $total_gram  = 0;
                 $total_jumlah_gram = 0;
+                $total_insentif = 0;
                 $mo = 1;
 
                 $cek_hadir      = $this->Timesheet_model->hitung_jumlah_produktifitas_kehadiran($r->employee_id, $start_date, $end_date);
@@ -210,7 +223,6 @@ class Rekap extends MY_Controller
 
                 foreach ($query_job->result() as $row_job) :
 
-
                     $jum_biaya      = $row_job->info_biaya;
                     $gram_biaya     = number_format($row_job->info_biaya, 0, ',', '.');
                     $target         = '-';
@@ -219,95 +231,44 @@ class Rekap extends MY_Controller
                     $gram_target    = number_format($jumlah_biaya, 0, ',', '.');
                     $info_target    = '';
 
-                    // if ($workstation_id == 4 || $workstation_id == 12) {
-
-
-                    //     $target         = '-';
-
-                    //     $nilai_target   = '-';
-
-                    //     $jumlah_biaya = $jum_biaya;
-
-                    //     $gram_target   = number_format($jumlah_biaya, 0, ',', '.');
-
-                    //     $info_target = '';
-                    // } else {
-
-                    //     $target         = 65000;
-
-                    //     $nilai_target   = number_format($target, 0, ',', '.');
-
-                    //     if ($jum_biaya == 0) {
-
-                    //         $jumlah_biaya = 0;
-
-                    //         $gram_target  = number_format($jumlah_biaya, 0, ',', '.');
-
-                    //         $info_target = 'Target Tidak Tercapai';
-                    //     } else if ($jum_biaya > 0 && $jum_biaya <= $target) {
-
-                    //         $jumlah_biaya = $target;
-
-                    //         $gram_target  = number_format($jumlah_biaya, 0, ',', '.');
-
-                    //         $info_target = '<span class="label label-danger"><i class ="fa fa-times"></i> Target Tidak Tercapai</span>';
-                    //     } else if ($jum_biaya > $target) {
-
-                    //         $jumlah_biaya = $jum_biaya;
-
-                    //         $gram_target  = number_format($jumlah_biaya, 0, ',', '.');
-
-                    //         $info_target = '<span class="label label-success"><i class ="fa fa-check"></i> Target Tercapai</span>';
-                    //     }
-                    // }
-
                     $_date = date("d-m-Y", strtotime($row_job->gram_tanggal));
                     $_gram = number_format($row_job->info_nilai, 0, ',', '.');
+                    $_insentif = number_format($row_job->insentif, 0, ',', '.');
+                    // $job .= "<tr>
+                    //     <td width=\"2%\" align=\"center\">{$mo}</td>
+                    //     <td align=\"center\">{$_date}</td>
+                    //     <td align=\"right\">{$_gram}</td>
+                    //     <td align=\"right\">{$gram_target}</td>
+                    // </tr>";
                     $job .= "<tr>
                         <td width=\"2%\" align=\"center\">{$mo}</td>
                         <td align=\"center\">{$_date}</td>
                         <td align=\"right\">{$_gram}</td>
                         <td align=\"right\">{$gram_target}</td>
+                        <td align=\"right\">{$_insentif}</td>
                     </tr>";
-                    // $job = $job . '
-                    //                             <tr">
-                    //                                 <td width="2%" align="center">' . $mo . '.</td>
-
-                    //                                 <td width="12%"  align="center">
-                    //                                   ' . date("d-m-Y", strtotime($row_job->gram_tanggal)) . '
-                    //                                 </td>
-
-                    //                                 <td width="12%" align="right">
-                    //                                  ' . $gram_biaya . '
-                    //                                 </td>
-
-                    //                                 <td width="12%" align="right">
-                    //                                  ' . $nilai_target . '
-                    //                                 </td>
-
-                    //                                 <td width="12%" align="right">
-                    //                                  ' . $gram_target . '
-                    //                                 </td>
-
-                    //                                 <td  align="left">
-                    //                                  ' . $info_target . '
-                    //                                 </td>
-
-                    //                             </tr>';
-
+                    
                     $total_jumlah_gram += $row_job->info_nilai;
                     $total_gram   += $jum_biaya;
                     $total_biaya  += $jumlah_biaya;
+                    $total_insentif  += $row_job->insentif;
 
                     $mo++;
                 endforeach;
 
                 $_tgram = number_format($total_jumlah_gram, 0, ',', '.');
                 $_tbiaya = number_format($total_biaya, 0, ',', '.');
+                $_tinsentif = number_format($total_insentif, 0, ',', '.');
+                // $job .= "<tr>
+                //     <td colspan=\"2\" width=\"12%\" align=\"right\">{$jumlah_hadir} hari kerja</td>
+                //     <td align=\"right\">{$_tgram}</td>
+                //     <td align=\"right\">{$_tbiaya}</td>
+                // </tr>";
                 $job .= "<tr>
                     <td colspan=\"2\" width=\"12%\" align=\"right\">{$jumlah_hadir} hari kerja</td>
                     <td align=\"right\">{$_tgram}</td>
                     <td align=\"right\">{$_tbiaya}</td>
+                    <td align=\"right\">{$_tinsentif}</td>
                 </tr>";
 
                 // $job = $job . '
@@ -356,6 +317,7 @@ class Rekap extends MY_Controller
                 'rekap_day'         => $jumlah_hadir,
                 'rekap_gram'        => $total_jumlah_gram,
                 'rekap_amount'      => $total_biaya,
+                'rekap_insentif'      => $total_insentif,
 
                 'created_at'        => date('Y-m-d h:i:s'),
                 'created_by'        => $user_create
@@ -368,7 +330,7 @@ class Rekap extends MY_Controller
             $data[] = array(
                 $no,
                 $emp_nik,
-                $full_name . '<br> <i class="fa fa-angle-double-right"></i> ' . $workstation_name . ' (' .    $workstation_id . ') <br><i class="fa fa-angle-double-right"></i> ' . $designation_name,
+                $full_name . '<br> <i class="fa fa-angle-double-right"></i> ' . $workstation_name . ' (' .    $workstation_id . ') <br><i class="fa fa-angle-double-right"></i> ' . $designation_name .'<br>'.$start_join,
                 $job
             );
             $no++;

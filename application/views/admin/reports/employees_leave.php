@@ -148,18 +148,18 @@ $year              = $this->input->post('year');
                       <th rowspan="2" style="vertical-align: middle !important;">Masa<br>Kerja</th> 
                       <th rowspan="2" style="vertical-align: middle !important;">Tanggal<br>Hak Cuti</th> 
                       <th rowspan="2" style="vertical-align: middle !important;"><center>Hak<br>Cuti</center></th>
-                      <th colspan="12"> Tahun <?php if(isset($year)): echo date('Y', strtotime($year)); else: echo date('Y',strtotime($tahun)); endif;?></th>
+                      <!-- <th colspan="12"> Tahun <?php if(isset($year)): echo date('Y', strtotime($year)); else: echo date('Y',strtotime($tahun)); endif;?></th> -->
                       <th rowspan="2" style="vertical-align: middle !important;">Pakai<br>Cuti</th> 
                       <th rowspan="2" style="vertical-align: middle !important;">Sisa<br>Cuti</th> 
                       <th rowspan="2" style="vertical-align: middle !important;">Info Cuti</th>        
                   </tr>
-                  <tr>
+                  <!-- <tr>
                       <?php foreach($xin_bulan as $t):?>  
                         <?php $bulan_no = $t->bulan; ?>
                         <?php $bulan_nm = $t->status; ?>
                         <th ><center><?php echo $bulan_no;?><br><?php echo $bulan_nm;?> </center></th>      
                       <?php endforeach;?>                   
-                   </tr>
+                   </tr> -->
                 </thead>
 
                 <tbody>
@@ -299,6 +299,20 @@ $year              = $this->input->post('year');
                             }
                            
                         }
+                        $cek_cuti_tahun = $this->Timesheet_model->cek_jumlah_cuti_tahun($r->user_id,$r->year_of_now); 
+
+                               if(!is_null($cek_cuti_tahun)){
+
+                                
+                                  $jum_cuti_tahunan = $cek_cuti_tahun[0]->jumlah;
+                                
+                              
+                              } else {
+                                  $jum_cuti_tahunan = '0';
+                                 
+                              }
+
+                              $sisa_cuti = $hak_cuti-$jum_cuti_tahunan;
 
                         $dol = date("d-m-Y", strtotime($r->date_of_leaving)) ;
                                         
@@ -317,7 +331,7 @@ $year              = $this->input->post('year');
                               <?php $bulan_no = $t->bulan; ?>
                               <?php $bulan_nm = $t->status; ?>
                               <?php $employee_id = $r->user_id; ?>
-                              
+                                
                               <?php $kode = $employee_id.'-'.$bulan_no.'-'.$r->year_of_now ; 
 
                                $cek_cuti_bulan = $this->Timesheet_model->cek_jumlah_cuti_bulan($r->user_id,$bulan_no,$r->year_of_now); 
@@ -393,4 +407,8 @@ $year              = $this->input->post('year');
 }
 .hide-calendar .ui-datepicker-calendar { display:none !important; }
 .hide-calendar .ui-priority-secondary { display:none !important; }
+
 </style>
+<script>
+   $('#xin_table_bulanan').dataTable();
+</script>

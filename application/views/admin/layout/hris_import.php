@@ -2,9 +2,20 @@
 /* Employee Import view
 */
 ?>
+<?php $session            = $this->session->userdata('username'); ?>
+<?php $user_info          = $this->Core_model->read_user_info($session['user_id']); ?>
+<?php $role_resources_ids = $this->Core_model->user_role_resource(); ?>
+<?php $get_animate        = $this->Core_model->get_content_animate(); ?>
+<?php $system             = $this->Core_model->read_setting_info(1); ?>
+
+<?php $start_date         = $this->input->post('start_date'); ?>
+<?php $end_date         = $this->input->post('end_date'); ?>
+
+
 <?php $session = $this->session->userdata('username');?>
 <?php $get_animate = $this->Core_model->get_content_animate();?>
 <?php $user_info = $this->Core_model->read_user_info($session['user_id']);?>
+
 
 <section id="basic-listgroup">
   <div class="row match-heights <?php echo $get_animate?>">
@@ -28,6 +39,28 @@
           <?php echo form_open_multipart('admin/import/import_gram', $attributes, $hidden);?>
           
           <div class="row">
+            <div class="col-md-3">
+                  <div class="form-group">
+                    <label for="first_name"><?php echo $this->lang->line('xin_company_select'); ?></label>
+                    <select class="form-control" name="company_id" id="company" data-plugin="select_hrm" data-placeholder="<?php echo $this->lang->line('xin_select_company'); ?>" required>
+                      <option value=""></option>
+                      <?php foreach ($all_companies as $company) { ?>
+                        <option value="<?php echo $company->company_id ?>"><?php echo $company->name ?></option>
+                      <?php } ?>
+                    </select>
+                  </div>
+            </div>
+            <!-- <div class="col-md-2">
+                            <div class="form-group">
+                              <label for="first_name"> Workstation  </label>
+                                <select class="form-control" name="workstation_id" id="workstation_id" data-plugin="select_hrm" data-placeholder="<?php echo $this->lang->line('xin_select_workstation'); ?>">
+                                  <option value=""></option>
+                                  <?php foreach ($get_all_workstation as $workstation) { ?>
+                                    <option value="<?php echo $workstation->workstation_id ?>"><?php echo $workstation->workstation_name ?></option>
+                                  <?php } ?>
+                                </select>
+                            </div>
+                          </div> -->
             <div class="col-md-4">
               <div class="form-group">
                 <fieldset class="form-group">
@@ -69,7 +102,52 @@
                   <div class="row">
                       <div class="col-md-12">                   
                         <div class="row">                          
+                          <div class="col-md-3">
+                            <div class="form-group">
+                              <label for="first_name"><?php echo $this->lang->line('xin_company_select'); ?></label>
+                              <select class="form-control" name="company_id" id="aj_company_id" data-plugin="select_hrm" data-placeholder="<?php echo $this->lang->line('xin_select_company'); ?>"onchange="get_workstations()">
+                                <option value=""></option>
+                                <?php foreach ($all_companies as $company) { ?>
+                                  <option value="<?php echo $company->company_id ?>"><?php echo $company->name ?></option>
+                                <?php } ?>
+                              </select>
+                            </div>
+                          </div>
 
+                          <div class="col-md-3">
+                            <span id="workstation_ajax1">
+
+                              <div class="form-group" id="workstation_ajax">
+                                <label for="name"><?php echo $this->lang->line('xin_workstation_select'); ?></label>
+                                <select disabled="disabled" class="select2" data-plugin="select_hrm" data-placeholder="<?php echo $this->lang->line('xin_select_workstation'); ?>" name="workstation_id">
+                                  <option value=""></option>
+                                </select>
+                              </div>
+                            </span>
+                          </div>
+
+                          <!-- <div class="col-md-2">
+                            <div class="form-group">
+                              <label for="first_name"> Perusahaan  </label>
+                                <select class="form-control" name="company_id" id="aj_company_id" data-plugin="select_hrm" data-placeholder="<?php echo $this->lang->line('xin_select_company'); ?>">
+                                  <option value=""></option>
+                                  <?php foreach ($all_companies as $company) { ?>
+                                    <option value="<?php echo $company->company_id ?>"><?php echo $company->name ?></option>
+                                  <?php } ?>
+                                </select>
+                            </div>
+                          </div>
+                          <div class="col-md-2">
+                            <div class="form-group">
+                              <label for="first_name"> Workstation  </label>
+                                <select class="form-control" name="workstation_id" id="workstation_id" data-plugin="select_hrm" data-placeholder="<?php echo $this->lang->line('xin_select_workstation'); ?>">
+                                  <option value=""></option>
+                                  <?php foreach ($get_all_workstation as $workstation) { ?>
+                                    <option value="<?php echo $workstation->workstation_id ?>"><?php echo $workstation->workstation_name ?></option>
+                                  <?php } ?>
+                                </select>
+                            </div>
+                          </div> -->
                           <div class="col-md-2">
                             <div class="form-group">
                               <label for="first_name"> Tanggal  </label>
@@ -77,7 +155,7 @@
                             </div>
                           </div>
                          
-                          <div class="col-md-8">
+                          <div class="col-md-6">
                             <div class="form-group" style="float: left;margin-top: 22px;">
                               <div class="form-actions">
                                 <button type="button" class="btn btn-primary" onclick="searchDataGramasi()">
@@ -116,9 +194,9 @@
                 <i class="fa fa-times"></i> Hapus
               </button>
 
-              <button type="button" class="btn btn-warning" onclick="simpanDataGramasi()" title="Simpan Produktifitas"> 
+              <!-- <button type="button" class="btn btn-warning" onclick="simpanDataGramasi()" title="Simpan Produktifitas"> 
                 <i class="fa fa-save"></i> Simpan
-              </button>
+              </button> -->
             </div>           
 
           </div>
@@ -135,6 +213,7 @@
                       <th width="250px"><center> Posisi </center></th>
                       <th width="400px" style="text-align: center !important;"><center> Nm Brg </center></th>                                  
                       <th width="120px" style="text-align: center !important;"><center> Gram </center></th>
+                      <th width="120px" style="text-align: center !important;"><center> Insentif </center></th>
                       <th width="75px" style="text-align: center !important;"><center> Status<br>HRIS </center></th>
                       <th width="75px" style="text-align: center !important;"><center> Status<br>Simpan  </center></th>
                       <th width="400px" style="text-align: center !important;"><center> Informasi  </center></th>
@@ -162,7 +241,24 @@
 </section>
 
 <script type="text/javascript">  
-
+    function get_workstations() {
+      var company_id  = jQuery('#aj_company_id').val();
+      // alert(company_id)
+      $.ajax({
+        type : "GET",
+        url  : '<?php echo base_url();?>admin/import/get_workstations/'+company_id,
+        data : { 
+          
+          // company_id  : company_id,
+        },
+        // dataType : "json",
+        success:function(data){   
+                // console.log(data);                     
+                  $("#workstation_ajax1").html(data);
+                    
+                }
+        });
+    }
    
 
     function tampilkan_tabel() 
@@ -186,10 +282,24 @@
     function searchDataGramasi() 
     {  
         var start_date  = jQuery('#start_date').val();
+        var company_id  = jQuery('#aj_company_id').val();
+        var workstation_id  = jQuery('#workstation_id').val();
        
         if (start_date == '' )
         {
             alert("Tanggal Belum Diisi !");
+            $("#start_date").focus();  
+            
+        } 
+        if (company_id == '' )
+        {
+            alert("Perusahaan Belum Diisi !");
+            $("#start_date").focus();  
+            
+        } 
+        if (workstation_id == '' )
+        {
+            alert("Workstation Belum Diisi !");
             $("#start_date").focus();  
             
         } 
@@ -223,7 +333,9 @@
                     url: '<?php echo base_url(); ?>admin/import/gaji_borongan_gramasi_list/',
                     data: {                 
                         
-                        start_date  : start_date
+                        start_date  : start_date,
+                        company_id  : company_id,
+                        workstation_id:workstation_id
                     }
                 },  
                                     
@@ -239,7 +351,8 @@
                     {"name": "kolom_8",   "className": "text-center"},                    
                     {"name": "kolom_9",   "className": "text-center"},  
                     {"name": "kolom_10",  "className": "text-center"},                                                 
-                    {"name": "kolom_11",  "className": "text-left"}                                                  
+                    {"name": "kolom_11",  "className": "text-left"},                                                
+                    {"name": "kolom_12",  "className": "text-left"}                                                  
                    
                 ], 
                                     
@@ -289,8 +402,9 @@
                 url  : '<?php echo base_url();?>admin/import/gaji_borongan_gramasi_list_jumlah/',
                 data : { 
                   
-                    start_date : start_date                     
-                    
+                    start_date : start_date,                     
+                    company_id  : company_id,
+                    workstation_id:workstation_id
                 },
                 dataType : "json",
                 success:function(data){                        
@@ -318,6 +432,12 @@
         {
             alert("Tanggal Belum Diisi !");
             $("#start_date").focus();  
+            
+        } 
+        if (company_id == '' )
+        {
+            alert("Perusahaan Belum Diisi !");
+            $("#company_id").focus();  
             
         } 
         
@@ -414,6 +534,8 @@
     function hapusDataGramasi() 
     {  
         var start_date  = jQuery('#start_date').val();
+        var company_id  = jQuery('#aj_company_id').val();
+        var workstation_id  = jQuery('#workstation_id').val();
        
         if (start_date == '' )
         {
@@ -421,7 +543,18 @@
             $("#start_date").focus();  
             
         } 
-        
+        if (company_id == '' )
+        {
+            alert("Perusahaan Belum Diisi !");
+            $("#start_date").focus();  
+            
+        } 
+        if (workstation_id == '' )
+        {
+            alert("Workstation Belum Diisi !");
+            $("#start_date").focus();  
+            
+        } 
         else 
         { 
          var s_date = $('#start_date').datepicker({ dateFormat: 'dd-mm-yyyy' }).val();
@@ -449,7 +582,9 @@
                     url: '<?php echo base_url(); ?>admin/import/gaji_borongan_gramasi_hapus_list/',
                     data: {                 
                         
-                        start_date  : start_date
+                        start_date  : start_date,
+                        company_id:company_id,
+                        workstation_id:workstation_id
                     }
                 },  
                                     

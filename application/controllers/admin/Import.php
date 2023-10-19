@@ -31,7 +31,7 @@ class Import extends MY_Controller
 	public function __construct()
      {
 		parent::__construct();
-
+		
 		//load the models
 		$this->load->model("Clients_model");
 		$this->load->model("Core_model");		
@@ -39,7 +39,9 @@ class Import extends MY_Controller
 		$this->load->model("Payroll_model");
 		$this->load->model("Department_model");
 		$this->load->model("Designation_model");
+		$this->load->model("Employees_model");
 
+		
 		$this->load->library("pagination");
 		$this->load->library('Pdf');
 		$this->load->helper('string');
@@ -61,6 +63,9 @@ class Import extends MY_Controller
 		$data['all_companies'] = $this->Company_model->get_company();
 		$role_resources_ids    = $this->Core_model->user_role_resource();
 		
+        // $data['all_companies']       = $this->Company_model->get_company();
+
+        $data['get_all_workstation'] = $this->Company_model->get_workstation();
 		if(in_array('01031',$role_resources_ids)) {
 			$data['subview'] = $this->load->view("admin/layout/hris_import", $data, TRUE);
 			$this->load->view('admin/layout/layout_main', $data); //page load
@@ -80,7 +85,7 @@ class Import extends MY_Controller
 			$Return = array('result'=>'', 'error'=>'', 'csrf_hash'=>'');
 
 			$Return['csrf_hash'] = $this->security->get_csrf_hash();
-			
+			$company_id = $this->input->post('company_id');
 			
 			//validate whether uploaded file is a csv file
 	   		$csvMimes = array('text/x-comma-separated-values', 'text/comma-separated-values', 'application/octet-stream', 'application/vnd.ms-excel', 'application/x-csv', 'text/x-csv', 'text/csv', 'application/csv', 'application/excel', 'application/vnd.msexcel', 'text/plain');
@@ -116,12 +121,34 @@ class Import extends MY_Controller
 
 							//parse data from csv file line by line
 							while(($line = fgetcsv($csvFile)) !== FALSE){
-								
+
+								$gram_tanggal = $line[0];
+								$employee_id = $line[1];
+								$gram_nilai = $line[2];
+								$gram_grading = $line[3];
+								$gram_no_job = $line[4];
+								$insentif = $line[5];
+								// $old_date_timestamp = strtotime($gram_tanggal);
+								// $gram_tanggal = date('Y-m-d', $old_date_timestamp);  
+								// echo $gram_tanggal;return;
+
+								$user_info      = $this->Employees_model->get_employees_by_id($employee_id);	
+								if(!is_null($user_info)){
+									$company_id = $user_info->company_id;
+									$designation_id = $user_info->designation_id;
+									$workstation_id = $user_info->workstation_id;
+									
+								} else {		
+									$company_id = '';
+									$designation_id = '';
+									$workstation_id = '';
+								}
+
 								$sql1 ="DELETE FROM xin_workstation_gram WHERE 1=1
-								        AND gram_tanggal = '".$line[0]."' 
+								        AND gram_tanggal = '".$gram_tanggal."' 
 								        AND employee_id  = '".$line[1]."'								        
-								        AND gram_grading = '".$line[3]."'
 								        AND gram_no_job  = '".$line[4]."'
+								        AND company_id  = '".$company_id."'
 								";
 								// print_r($sql1);
 								// exit();
@@ -129,11 +156,14 @@ class Import extends MY_Controller
 								
 								$data = array(
 
-									'gram_tanggal' => $line[0],
+									'gram_tanggal' => $gram_tanggal,
 									'employee_id'  => $line[1],	
 									'gram_nilai'   => $line[2],
 									'gram_grading' => $line[3],
 									'gram_no_job'  => $line[4],
+									'insentif'  => $line[5],
+									'company_id'  => $company_id,
+									'workstation_id'  => $workstation_id,
 																
 									'added_by'     => $this->input->post('user_id'),
 									'created_at'   => date('Y-m-d H:i:s'),
@@ -141,7 +171,44 @@ class Import extends MY_Controller
 								);
 								$this->Clients_model->add_gram($data);
 
+								// rekap
+									$sql1 ="DELETE FROM xin_workstation_gram_terima WHERE 1=1
+											AND  gram_tanggal = '".$gram_tanggal."' AND employee_id  = '".$line[1]."' AND gram_no_job  = '".$line[4]."'  AND company_id  = '".$company_id."'  ";
+									$this->db->query($sql1);
+									
+									// var_dump($user_info);return;
+									
 
+									$ongkos = $this->Core_model->read_gramasi_workstation_info($gram_grading);
+									if(!is_null($ongkos)){						
+										$ongkos_biaya     = $ongkos[0]->skala_upah_ongkos;
+									} else {
+										$ongkos_biaya = 0;							
+									}
+
+									$jumlah = $ongkos_biaya*$gram_nilai/1000; 
+
+									$session_id = $this->session->userdata('user_id');
+									$user_create = $session_id['user_id'];
+
+
+									$data_impor = array(
+										'gram_tanggal'                 => $gram_tanggal,						
+										'employee_id'                  => $employee_id,
+										'workstation_id'               => $workstation_id,
+										'company_id'  					=> $company_id,
+										'gram_grading'     			   => $gram_grading,	
+										'gram_nilai'                   => $gram_nilai,
+										'gram_ongkos'                  => $ongkos_biaya,
+										'gram_biaya'         	       => $jumlah,						
+										'insentif'         	           => $insentif,						
+
+										'gram_no_job'                  => $gram_no_job,
+										'status'                   	   => '1',
+										'created_at'                   => date('Y-m-d h:i:s'),
+										'created_by'                   => $user_create
+									);
+									$this->Payroll_model->add_produktifitas_harian($data_impor);
 							}					
 							//close opened csv file
 							fclose($csvFile);
@@ -185,11 +252,14 @@ class Import extends MY_Controller
 		
 		// date and employee id/company id
 		$start_date = $this->input->get("start_date");
+		$company_id = $this->input->get("company_id");
+		$workstation_id = $this->input->get("workstation_id");
 		
 		$role_resources_ids = $this->Core_model->user_role_resource();
 													
-		$payslip = $this->Payroll_model->get_comp_import_borongan_company($start_date);
-		
+		$payslip = $this->Payroll_model->get_comp_import_borongan_company2($company_id,$workstation_id,$start_date);
+		// var_dump($payslip->result());
+		// return;
 		$system = $this->Core_model->read_setting_info(1);		
 		$data   = array();
 		$no     = 1;              
@@ -199,34 +269,25 @@ class Import extends MY_Controller
 				// ====================================================================================================================
 				// DATA KARYAWAN 
 				// ====================================================================================================================
-					
 					// Karyawan ID
 					$emp_id         = $r->employee_id;
 					$user_id        = $r->added_by;
 
-					$user_info      = $this->Core_model->read_employee_info_data($emp_id);	
+					$create_info      = $this->Core_model->read_user_info_detail($user_id);	
+					// var_dump($user_id);return;
 
-					if(!is_null($user_info)){
-						$emp_nik        = $user_info[0]->employee_id;
-						$full_name      = $user_info[0]->first_name.' '.$user_info[0]->last_name;					
-						$designation_id = $user_info[0]->designation_id;
-						$status_hris    = '<i class="fa fa-check-circle text-success"></i> Ada ';
+					if(!is_null($r->fullname)){
+						$emp_nik        = $r->employee_id;
+						$full_name      = $r->fullname;					
+						$designation_id = $r->designation_id;
+						$status_hris    = '<i class="fa fa-check-circle text-success"></i> Ada ';				
+						$create_info_name        = ucfirst($create_info[0]->first_name . ' ' .$create_info[0]->last_name);
 					} else {
 						$emp_nik        = '';
+						$create_info_name        = ucfirst($create_info[0]->first_name . ' ' .$create_info[0]->last_name);
 						$full_name      = '<span class="badge bg-red"> ? </span>';			
 						$designation_id = '';
 						$status_hris    = '<i class="fa fa-times-circle text-danger"></i> Tidak Ada';
-					}
-
-					$create_info      = $this->Core_model->read_user_info_detail($user_id);	
-
-					if(!is_null($create_info)){
-						
-						$create_info_name      = ucfirst($create_info[0]->first_name.' '.$create_info[0]->last_name);					
-						
-					} else {
-						$create_info_name        = '';
-						
 					}
 				
 				// ====================================================================================================================
@@ -234,17 +295,15 @@ class Import extends MY_Controller
 				// ====================================================================================================================
 					
 					// get workstation
-					$workstation = $this->Core_model->read_designation_workstation_info($designation_id);
-					if(!is_null($workstation)){
-						$workstation_name = $workstation[0]->workstation_name;
+					if(!is_null($r->workstation_name)){
+						$workstation_name = $r->workstation_name;
 					} else {
 						$workstation_name = '<span class="badge bg-red"> ? </span>';
 					}
 
 					// Karyawan Posisi
-					$designation = $this->Designation_model->read_designation_information($designation_id);
-					if(!is_null($designation)){
-						$designation_name = $designation[0]->designation_name;
+					if(!is_null($r->designation_name)){
+						$designation_name = $r->designation_name;
 					} else {
 						$designation_name = '<span class="badge bg-red"> ? </span>';	
 					}
@@ -280,6 +339,7 @@ class Import extends MY_Controller
 					$designation_name,
 					$r->gram_grading,
 					number_format($r->gram_nilai, 0, ',', '.'), 					
+					number_format($r->insentif, 0, ',', '.'), 					
 					
 					$status_hris,
 					$info_simpan,
@@ -299,17 +359,19 @@ class Import extends MY_Controller
         );
         $this->output->set_output(json_encode($output));		         
     }
+	
 
     public function gaji_borongan_gramasi_list_jumlah()
 	{
 					        
 
         $start_date = $this->input->get('start_date');
-
-           						
+		$company_id = $this->input->get("company_id");
+		$workstation_id = $this->input->get("workstation_id");
 		$sql = 'SELECT count(*) as jumlah, sum(gram_nilai) as jumlah_gram 
 		        FROM xin_workstation_gram 
-		        WHERE gram_tanggal = "'.$start_date.'"  ';
+		        WHERE gram_tanggal = "'.$start_date.'" and company_id =   "'.$company_id.'" and workstation_id =  "'.$workstation_id.'"  ';
+
 		
 		// echo "<pre>";
 		// print_r($sql);
@@ -512,23 +574,25 @@ class Import extends MY_Controller
 		
 		// date and employee id/company id
 		$start_date = $this->input->get("start_date");
+		$company_id = $this->input->get("company_id");
+		$workstation_id = $this->input->get("workstation_id");
 		
 		$role_resources_ids = $this->Core_model->user_role_resource();
 													
-		$payslip = $this->Payroll_model->get_comp_import_borongan_company($start_date);
+		$payslip = $this->Payroll_model->get_comp_import_borongan_company2($company_id,$workstation_id,$start_date);
 		
 		$system = $this->Core_model->read_setting_info(1);		
 		$data   = array();
 		$no     = 1;              
 
 		$sql1 ="DELETE FROM xin_workstation_gram WHERE 1=1
-		        AND  gram_tanggal = '".$start_date."'  ";
+		        AND  gram_tanggal = '".$start_date."' and company_id = '".$company_id."' and workstation_id = '".$workstation_id."'  ";
 		// print_r($sql1);
 		// exit();
 		$query1   = $this->db->query($sql1);
 
 		$sql2 ="DELETE FROM xin_workstation_gram_terima WHERE 1=1
-		        AND  gram_tanggal = '".$start_date."'  ";
+		        AND  gram_tanggal = '".$start_date."' and company_id = '".$company_id."' and workstation_id = '".$workstation_id."' ";
 		// print_r($sql2);
 		// exit();
 		$query2   = $this->db->query($sql2);
@@ -656,6 +720,28 @@ class Import extends MY_Controller
             "data" => $data
         );
         $this->output->set_output(json_encode($output));		         
+    }
+
+	public function get_workstations()
+    {
+
+        $data['title'] = $this->Core_model->site_title();
+		$id = $this->uri->segment(4);
+
+        $data = array(
+            'company_id' => $id
+        );
+		// var_dump($data);
+        $session = $this->session->userdata('username');
+        if (!empty($session)) {
+            $this->load->view("admin/layout/get_workstations", $data);
+        } else {
+            redirect('admin/');
+        }
+        // Datatables Variables
+        $draw = intval($this->input->get("draw"));
+        $start = intval($this->input->get("start"));
+        $length = intval($this->input->get("length"));
     }
 
 

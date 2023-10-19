@@ -11,7 +11,12 @@
  
 	public function get_locations()
 	{
-	  return $this->db->get("xin_office_location");
+		$sql = 'SELECT * FROM xin_office_location ';
+		// $binds = array($id);
+		$query = $this->db->query($sql);
+
+		return $query->result();
+	  	// return $this->db->get("xin_office_location");
 	}
 	 
 	 public function read_location_information($id) {

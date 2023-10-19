@@ -46,6 +46,13 @@
         $query = $this->db->query($sql, $binds);
         return $query;
     }
+    public function get_comp_template_harian_new($cid,$lid) {
+
+        $sql = 'SELECT * FROM xin_employees WHERE company_id = ? AND location_id = ? AND wages_type = 2 AND is_active = 1 ORDER BY date_of_joining DESC';
+        $binds = array($cid,$lid);
+        $query = $this->db->query($sql, $binds);
+        return $query;
+    }
 
     public function get_comp_template_borongan($cid,$wid) {
 
@@ -226,6 +233,19 @@
 
         $sql = 'SELECT * FROM view_karyawan_borongan_gramasi_import WHERE gram_tanggal = ?  ORDER BY gram_no_job DESC ';
         $binds = array($start_date);
+        $query = $this->db->query($sql, $binds);
+
+        // echo "<pre>";
+        // print($this->db->last_query());
+        // echo "</pre>";
+        // die();
+
+        return $query;
+    }
+    public function get_comp_import_borongan_company2($company_id,$workstation_id,$start_date) {
+
+        $sql = 'SELECT * FROM view_karyawan_borongan_gramasi_import WHERE gram_tanggal = ? and company_id = ? and workstation_id = ?  ORDER BY gram_no_job DESC ';
+        $binds = array($start_date,$company_id,$workstation_id);
         $query = $this->db->query($sql, $binds);
 
         // echo "<pre>";
@@ -563,10 +583,10 @@
         return $query;
     }
 
-    public function get_company_payslip_perbulan_borongan($company_id,$start_date,$end_date) {
+    public function get_company_payslip_perbulan_borongan($company_id,$workstation_id,$start_date,$end_date) {
 
-        $sql = 'SELECT * FROM xin_salary_payslips_borongan WHERE company_id = ? and start_date = ? and end_date = ? GROUP BY employee_id ORDER BY doj ASC';
-        $binds = array($company_id,$start_date,$end_date);
+        $sql = 'SELECT * FROM xin_salary_payslips_borongan WHERE company_id = ? and workstation_id = ? and start_date >= ? and end_date <= ? GROUP BY employee_id ORDER BY doj ASC';
+        $binds = array($company_id,$workstation_id,$start_date,$end_date);
         $query = $this->db->query($sql, $binds);
 
         // echo "<pre>";
@@ -591,10 +611,15 @@
         return $query;
     }
 
-    public function get_company_payslip_perbulan_cetak_borongan($company_id,$start_date,$end_date) {
+    public function get_company_payslip_perbulan_cetak_borongan($company_id,$workstation_id,$start_date,$end_date) {
 
-        $sql = 'SELECT * FROM xin_salary_payslips_borongan WHERE company_id = ? and start_date >= ? and end_date <= ? GROUP BY employee_id ORDER BY doj ASC';
-        $binds = array($company_id,$start_date,$end_date);
+        $sql = 'SELECT *,xin_employees.first_name,xin_employees.last_name,workstation.workstation_name FROM xin_salary_payslips_borongan
+        --  LEFT JOIN xin_companies as company ON xin_salary_payslips_borongan.company_id = company.company_id
+         LEFT JOIN xin_employees AS xin_employees ON xin_employees.user_id = xin_salary_payslips_borongan.employee_id
+         LEFT JOIN xin_workstation AS workstation ON xin_salary_payslips_borongan.workstation_id = workstation.workstation_id
+        -- LEFT JOIN xin_designations as designation ON designation.designation_id = kry.designation_id
+         WHERE xin_salary_payslips_borongan.company_id = ? and xin_salary_payslips_borongan.workstation_id = ? and start_date >= ? and end_date <= ? GROUP BY xin_salary_payslips_borongan.employee_id ORDER BY doj ASC';
+        $binds = array($company_id,$workstation_id,$start_date,$end_date);
         $query = $this->db->query($sql, $binds);
 
         // echo "<pre>";

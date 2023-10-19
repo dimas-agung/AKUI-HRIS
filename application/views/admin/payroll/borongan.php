@@ -149,7 +149,7 @@
               <center><?php echo $this->lang->line('xin_employee_grade'); ?></center>
             </th>
             <!-- 14 -->
-            <th width="170px" colspan="5" style="background-color: #4e7ccf;color: #fff;">
+            <th width="170px" colspan="6" style="background-color: #4e7ccf;color: #fff;">
               <center> Komponen Penambah</center>
             </th>
             <th width="170px" colspan="3" style="background-color: #cd4ecf;color: #fff;">
@@ -183,6 +183,9 @@
             </th>
             <th width="170px" style="background-color: #4e7ccf;color: #fff;">
               <center> Total<br>Gaji</center>
+            </th>
+            <th width="170px" style="background-color: #4e7ccf;color: #fff;">
+              <center> Total<br>Insentif </center>
             </th>
             <th width="170px" style="background-color: #4e7ccf;color: #fff;">
               <center> Total<br>Tambahan </center>
@@ -421,6 +424,10 @@
           },
           {
             "name": "kolom_25",
+            "className": "text-left"
+          },
+          {
+            "name": "kolom_26",
             "className": "text-left"
           }
 

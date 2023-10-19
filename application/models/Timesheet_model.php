@@ -152,6 +152,24 @@ class Timesheet_model extends CI_Model
 
         return $query;
     }
+    public function attendance_first_in_check_by_date($attendance_date)
+    {
+
+        $sql = 'SELECT pin,nik,attendance_date,MIN(clock_in) AS clock_in FROM view_absen_masuk WHERE  attendance_date = ? GROUP BY pin,nik,attendance_date';
+        $binds = array($attendance_date);
+        $query = $this->db2->query($sql, $binds);
+
+        return $query->result();
+    }
+    public function attendance_first_out_check_by_date($attendance_date)
+    {
+
+        $sql = 'SELECT pin,nik,attendance_date,MAX(clock_out) AS clock_out FROM view_absen_pulang WHERE  attendance_date = ? GROUP BY pin,nik,attendance_date';
+        $binds = array($attendance_date);
+        $query = $this->db2->query($sql, $binds);
+
+        return $query->result();
+    }
 
     public function attendance_first_in_new($employee_nik, $attendance_date)
     {
@@ -633,7 +651,7 @@ class Timesheet_model extends CI_Model
             ->order_by('date_of_joining DESC, employee_id ASC, attendance_date ASC')
             ->group_by(['employee_id', 'attendance_date'])
             ->get('xin_attendance_time');
-
+//   print_r($this->db->last_query());
         // $sql = 'SELECT * FROM xin_attendance_time WHERE employee_id = ? AND attendance_date = ? ';
         // $binds = array($emp_id, $attendance_date);
         // $query = $this->db->query($sql, $binds);
@@ -778,6 +796,8 @@ class Timesheet_model extends CI_Model
 
         return $query->get('xin_attendance_time')->result();
     }
+
+
 
     public function hitung_jumlah_status_kehadiran_libur($emp_id, $start_date, $end_date, $jenis)
     {
@@ -926,6 +946,22 @@ class Timesheet_model extends CI_Model
         } else {
             return null;
         }
+    }
+
+    public function get_produktifitas_rekap($emp_id, $start_date, $end_date)
+    {
+        $sql = 'SELECT count(gram_tanggal) as rekap_day, IFNULL(SUM(gram_biaya),0) as rekap_amount, IFNULL(SUM(gram_nilai),0) as rekap_gram , IFNULL(SUM(insentif),0) as rekap_insentif FROM xin_workstation_gram_terima 
+        WHERE employee_id = ? and gram_tanggal >= ? and gram_tanggal <= ? ';
+        $binds = array($emp_id, $start_date, $end_date);
+        $query = $this->db->query($sql, $binds);
+
+        // echo "<pre>";
+        // print_r($this->db->last_query());
+        // echo "</pre>";
+        // die();
+
+        
+        return $query->result();
     }
 
 
@@ -1300,7 +1336,13 @@ class Timesheet_model extends CI_Model
 
     public function add_employee_attendance_rekap_harian_reguler($data)
     {
-        $this->db->insert('xin_attendance_time_rekap_harian', $data);
+        $table_name = "xin_attendance_time_rekap_harian";
+        // is multiple data
+        if (isset($data[0]) && is_array($data[0])) {
+            $this->db->insert_batch($table_name, $data);
+        } else {
+            $this->db->insert($table_name, $data);
+        }
         if ($this->db->affected_rows() > 0) {
             return $this->db->insert_id();
         } else {
@@ -1310,7 +1352,20 @@ class Timesheet_model extends CI_Model
 
     public function add_employee_attendance_rekap_borongan_reguler($data)
     {
-        $this->db->insert('xin_attendance_time_rekap_borongan', $data);
+        // $this->db->insert('xin_attendance_time_rekap_borongan', $data);
+        // if ($this->db->affected_rows() > 0) {
+        //     return $this->db->insert_id();
+        // } else {
+        //     return false;
+        // }
+        $table_name = "xin_attendance_time_rekap_borongan";
+
+        // is multiple data
+        if (isset($data[0]) && is_array($data[0])) {
+            $this->db->insert_batch($table_name, $data);
+        } else {
+            $this->db->insert($table_name, $data);
+        }
         if ($this->db->affected_rows() > 0) {
             return $this->db->insert_id();
         } else {
@@ -1978,6 +2033,30 @@ class Timesheet_model extends CI_Model
 
         return $query->get('xin_attendance_time_rekap_harian rekap')->result();
     }
+    public function get_xin_employees_harian_rekap_month($company_id, $month_year, $with_employees = false, $office_id = NULL)
+    {
+        /**
+         * @var CI_DB_query_builder
+         */
+        $query = $this->db->where(array(
+            'rekap.company_id' => $company_id,
+            'rekap.month_year' => $month_year,
+            'rekap.wages_type' => 2,
+            'rekap.is_active' => 1
+        ))->order_by('rekap.date_of_joining', 'desc');
+
+        if (!is_null($office_id)) {
+            $query = $query->where('rekap.office_id', $office_id);
+        }
+
+        if ($with_employees) {
+            $query = $query
+                ->select('rekap.*, emp.first_name, emp.last_name')
+                ->join('xin_employees emp', 'emp.user_id = rekap.employee_id');
+        }
+
+        return $query->get('xin_attendance_time_rekap_harian rekap')->result();
+    }
 
     // =============================================================================================================================================
     // REGULER
@@ -1988,6 +2067,26 @@ class Timesheet_model extends CI_Model
             'rekap.company_id' => $company_id,
             'rekap.start_date' => $start_date,
             'rekap.end_date' => $end_date,
+            'rekap.office_id' => $office_id,
+            'rekap.is_active' => 1
+        ))
+            ->where_in('rekap.wages_type', array(2, 3))
+            ->order_by('rekap.date_of_joining', 'desc');
+
+
+        if ($with_employees) {
+            $query = $query
+                ->select('rekap.*, emp.first_name, emp.last_name')
+                ->join('xin_employees emp', 'emp.user_id = rekap.employee_id');
+        }
+
+        return $query->get('xin_attendance_time_rekap_borongan rekap')->result();
+    }
+    public function get_employees_borongan_rekap_month($company_id, $month_year, $with_employees = false, $office_id = 'R')
+    {
+        $query = $this->db->where(array(
+            'rekap.company_id' => $company_id,
+            'rekap.month_year' => $month_year,
             'rekap.office_id' => $office_id,
             'rekap.is_active' => 1
         ))
@@ -2729,5 +2828,51 @@ class Timesheet_model extends CI_Model
         }
 
         return $all_total_attendance;
+    }
+    public function hitung_rekap_kehadiran($emp_id, $start_date, $end_date){
+        $sql = "SELECT 
+                SUM(
+                CASE WHEN attendance_status_simbol = 'H' THEN 1 ELSE 0 END
+                ) AS jumlah_hadir, 
+                SUM(
+                CASE WHEN attendance_status_simbol = 'I' THEN 1 ELSE 0 END
+                ) AS jumlah_izin, 
+                SUM(
+                CASE WHEN attendance_status_simbol = 'C' THEN 1 ELSE 0 END
+                ) AS jumlah_cuti, 
+                SUM(
+                CASE WHEN attendance_status_simbol = 'S' THEN 1 ELSE 0 END
+                ) AS jumlah_sakit, 
+                SUM(
+                CASE WHEN attendance_status_simbol = 'A' THEN 1 ELSE 0 END
+                ) AS jumlah_alpa, 
+                SUM(
+                CASE WHEN attendance_status_simbol = 'L' THEN 1 ELSE 0 END
+                ) AS jumlah_libur, 
+                SUM(
+                CASE WHEN attendance_status_simbol = 'LK' THEN 1 ELSE 0 END
+                ) AS jumlah_libur_kantor,
+                SUM(
+                CASE WHEN attendance_status_simbol = '0' THEN 1 ELSE 0 END
+                ) AS jumlah_lembur,
+                SUM(
+                CASE WHEN attendance_status_simbol = 'D' THEN 1 ELSE 0 END
+                ) AS jumlah_dinas,
+                SUM(time_late) as jumlah_terlambat
+            FROM 
+                xin_attendance_time 
+            WHERE 
+                employee_id = ? 
+                AND attendance_date >= ? 
+                AND attendance_date <= ?
+        ";
+        $binds = array($emp_id, $start_date, $end_date);
+        $query = $this->db->query($sql, $binds);
+
+        if ($query->num_rows() > 0) {
+            return $query->row();
+        } else {
+            return null;
+        }
     }
 }

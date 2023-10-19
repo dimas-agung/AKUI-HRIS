@@ -205,8 +205,8 @@ if(isset($_GET['jd']) && isset($_GET['employee_id']) && $_GET['data']=='payment'
 					// 2: BPJS KES
 					// ============================================================================================================
 					
-						$count_bpjs_kes = $this->Employees_model->count_employee_bpjs_kes($employee_user_id,$end_date);
-						$bpjs_kes = $this->Employees_model->set_employee_bpjs_kes($employee_user_id,$end_date);
+						$count_bpjs_kes = $this->Employees_model->count_employee_bpjs_kes($employee_user_id,$start_date,$end_date);
+						$bpjs_kes = $this->Employees_model->set_employee_bpjs_kes($employee_user_id,$start_date,$end_date);
 						$bpjs_kes_amount = 0;
 						if($count_bpjs_kes > 0) {
 							foreach($bpjs_kes->result() as $sl_salary_bpjs_kes){

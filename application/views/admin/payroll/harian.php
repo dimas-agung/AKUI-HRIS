@@ -35,7 +35,16 @@ $hidden     = array('user_id' => $session['user_id']);
                                     </select>
                                 </div>
                             </div>
-
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="first_name">Lokasi Kerja</label>
+                                    <select class="form-control" name="location_id" id="aj_location" data-plugin="select_hrm" data-placeholder="<?php echo $this->lang->line('left_company'); ?>">
+                                        <?php foreach ($all_location as $location) { ?>
+                                            <option value="<?php echo $location->location_id; ?>"> <?php echo $location->location_name; ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </div>
+                            </div>
                             <div class="col-md-2">
                                 <div class="form-group">
                                     <label for="first_name"> Tanggal Mulai </label>
@@ -253,11 +262,15 @@ $hidden     = array('user_id' => $session['user_id']);
         var end_date = jQuery('#end_date').val();
 
         var company_id = jQuery('#aj_companyx').val();
+        var location_id = jQuery('#aj_location').val();
 
         if (company_id == '') {
             alert("Nama Perusahaan Belum Diisi !");
             $("#company").focus();
 
+        } else if (location_id == '') {
+            alert("Location belum diisi !");
+            $("#start_date").focus();
         } else if (start_date == '') {
             alert("Tanggal Start Belum Diisi !");
             $("#start_date").focus();
@@ -295,6 +308,7 @@ $hidden     = array('user_id' => $session['user_id']);
                     url: `${site_url}payroll/payslip_list_harian`,
                     data: {
                         company_id,
+                        location_id,
                         start_date,
                         end_date
                     },
@@ -497,18 +511,15 @@ $hidden     = array('user_id' => $session['user_id']);
                 url: '<?php echo base_url(); ?>admin/payroll/gaji_harian_jumlah/',
                 data: {
                     company_id: company_id,
+                    location_id : location_id,
                     start_date: start_date,
                     end_date: end_date
-
                 },
                 dataType: "json",
                 success: function(data) {
 
                     for (var i = 0; i < data.val.length; i++) {
-
                         $(".info_proses_gaji_harian").html('<h3 class="box-title text-bold"> DRAFT PERINCIAN GAJI HARIAN - <span class="text-danger text-uppercase"> PERIODE : ' + data.val[i].periode_gaji + ' </span></h3> <h5><i class="fa fa-info-circle"></i> Berikut ini Draft Gaji Harian di <b> ' + data.val[i].company_name + '</b>. Silahkan diperiksa, jika sudah benar, silahkan lakukan proses <span class="blink blink-one hijau"> Simpan </span>.</h5>');
-
-
                     }
                 }
             });

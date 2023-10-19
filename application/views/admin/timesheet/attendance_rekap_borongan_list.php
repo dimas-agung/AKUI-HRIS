@@ -120,14 +120,14 @@ echo form_input($data);
             </div>
           </div>
 
-          <div class="col-md-2">
+          <!-- <div class="col-md-2">
             <div class="form-group" id="periode_ajax">
               <label for="first_name">Periode Kehadiran Borongan</label>
               <select disabled="disabled" class="form-control input-sm" name="periode_id" id="periode_id" data-plugin="select_hrm" data-placeholder="<?php echo $this->lang->line('xin_e_details_month'); ?>" required>
                 <option value="0"> Pilih Periode Kehadiran Borongan </option>
               </select>
             </div>
-          </div>
+          </div> -->
 
           <div class="col-md-3">
             <div class="form-group"> &nbsp;
@@ -166,12 +166,109 @@ echo form_input($data);
             <th width="300px" rowspan="2" style="vertical-align: middle !important;">
               <center><?php echo $this->lang->line('xin_employee'); ?></center>
             </th>
-
+            <th colspan="31"> Kehadiran Bulan <span id="p_month"></span></th>
             <th colspan="8" style="vertical-align: middle !important;">Rekap</th>
             <th colspan="2" style="vertical-align: middle !important;"><?php echo $this->lang->line('xin_absent_late'); ?></th>
             <th width="20px" rowspan="2" style="vertical-align: middle !important;"><?php echo $this->lang->line('xin_timesheet_workdays_total'); ?></th>
           </tr>
           <tr>
+
+            <th width="20px" style="vertical-align: middle !important;">
+              <center> 1 </center>
+            </th>
+            <th width="20px" style="vertical-align: middle !important;">
+              <center> 2 </center>
+            </th>
+            <th width="20px" style="vertical-align: middle !important;">
+              <center> 3 </center>
+            </th>
+            <th width="20px" style="vertical-align: middle !important;">
+              <center> 4 </center>
+            </th>
+            <th width="20px" style="vertical-align: middle !important;">
+              <center> 5 </center>
+            </th>
+            <th width="20px" style="vertical-align: middle !important;">
+              <center> 6 </center>
+            </th>
+            <th width="20px" style="vertical-align: middle !important;">
+              <center> 7 </center>
+            </th>
+            <th width="20px" style="vertical-align: middle !important;">
+              <center> 8 </center>
+            </th>
+            <th width="20px" style="vertical-align: middle !important;">
+              <center> 9 </center>
+            </th>
+            <th width="20px" style="vertical-align: middle !important;">
+              <center> 10 </center>
+            </th>
+
+            <th width="20px" style="vertical-align: middle !important;">
+              <center> 11 </center>
+            </th>
+            <th width="20px" style="vertical-align: middle !important;">
+              <center> 12 </center>
+            </th>
+            <th width="20px" style="vertical-align: middle !important;">
+              <center> 13 </center>
+            </th>
+            <th width="20px" style="vertical-align: middle !important;">
+              <center> 14 </center>
+            </th>
+            <th width="20px" style="vertical-align: middle !important;">
+              <center> 15 </center>
+            </th>
+            <th width="20px" style="vertical-align: middle !important;">
+              <center> 16 </center>
+            </th>
+            <th width="20px" style="vertical-align: middle !important;">
+              <center> 17 </center>
+            </th>
+            <th width="20px" style="vertical-align: middle !important;">
+              <center> 18 </center>
+            </th>
+            <th width="20px" style="vertical-align: middle !important;">
+              <center> 19 </center>
+            </th>
+            <th width="20px" style="vertical-align: middle !important;">
+              <center> 20 </center>
+            </th>
+            <th width="20px" style="vertical-align: middle !important;">
+              <center> 21 </center>
+            </th>
+            <th width="20px" style="vertical-align: middle !important;">
+              <center> 22 </center>
+            </th>
+            <th width="20px" style="vertical-align: middle !important;">
+              <center> 23 </center>
+            </th>
+            <th width="20px" style="vertical-align: middle !important;">
+              <center> 24 </center>
+            </th>
+            <th width="20px" style="vertical-align: middle !important;">
+              <center> 25 </center>
+            </th>
+            <th width="20px" style="vertical-align: middle !important;">
+              <center> 26 </center>
+            </th>
+
+            <th width="20px" style="vertical-align: middle !important;">
+              <center> 27 </center>
+            </th>
+            <th width="20px" style="vertical-align: middle !important;">
+              <center> 28 </center>
+            </th>
+            <th width="20px" style="vertical-align: middle !important;">
+              <center> 29 </center>
+            </th>
+            <th width="20px" style="vertical-align: middle !important;">
+              <center> 30 </center>
+            </th>
+            <th width="20px" style="vertical-align: middle !important;">
+              <center> 31 </center>
+            </th>
+
             <th width="20px" style="vertical-align: middle !important;">
               <center><?php echo $this->lang->line('xin_holiday_judul'); ?></center>
             </th>
@@ -312,7 +409,7 @@ echo form_input($data);
           leftColumns: 2
         },
         "ajax": {
-          url: site_url + "timesheet/attendance_rekap_borongan_list/?company_id=" + company_id + "&period_id=" + period + "&pola_kerja=" + pola_kerja,
+          url: site_url + "timesheet/attendance_rekap_borongan_list/?company_id=" + company_id + "&month_year=" + month_year + "&pola_kerja=" + pola_kerja,
           type: 'GET'
         },
         "columns": [{
@@ -322,6 +419,133 @@ echo form_input($data);
           {
             "name": "kolom_2",
             "className": "text-left"
+          },
+          {
+            "name": "kolom_1",
+            "className": "text-center"
+          },
+          {
+            "name": "kolom_2",
+            "className": "text-center"
+          },
+          {
+            "name": "kolom_3",
+            "className": "text-center"
+          },
+          {
+            "name": "kolom_4",
+            "className": "text-center"
+          },
+
+          {
+            "name": "kolom_5",
+            "className": "text-center"
+          },
+          {
+            "name": "kolom_6",
+            "className": "text-center"
+          },
+          {
+            "name": "kolom_7",
+            "className": "text-center"
+          },
+          {
+            "name": "kolom_8",
+            "className": "text-center"
+          },
+          {
+            "name": "kolom_9",
+            "className": "text-center"
+          },
+          {
+            "name": "kolom_10",
+            "className": "text-center"
+          },
+          {
+            "name": "kolom_11",
+            "className": "text-center"
+          },
+
+          {
+            "name": "kolom_12",
+            "className": "text-center"
+          },
+          {
+            "name": "kolom_13",
+            "className": "text-center"
+          },
+          {
+            "name": "kolom_14",
+            "className": "text-center"
+          },
+          {
+            "name": "kolom_15",
+            "className": "text-center"
+          },
+          {
+            "name": "kolom_16",
+            "className": "text-center"
+          },
+          {
+            "name": "kolom_17",
+            "className": "text-center"
+          },
+          {
+            "name": "kolom_18",
+            "className": "text-center"
+          },
+
+          {
+            "name": "kolom_19",
+            "className": "text-center"
+          },
+          {
+            "name": "kolom_20",
+            "className": "text-center"
+          },
+          {
+            "name": "kolom_21",
+            "className": "text-center"
+          },
+          {
+            "name": "kolom_22",
+            "className": "text-center"
+          },
+          {
+            "name": "kolom_23",
+            "className": "text-center"
+          },
+          {
+            "name": "kolom_24",
+            "className": "text-center"
+          },
+          {
+            "name": "kolom_25",
+            "className": "text-center"
+          },
+          {
+            "name": "kolom_26",
+            "className": "text-center"
+          },
+          {
+            "name": "kolom_27",
+            "className": "text-center"
+          },
+          {
+            "name": "kolom_28",
+            "className": "text-center"
+          },
+          {
+            "name": "kolom_29",
+            "className": "text-center"
+          },
+          {
+            "name": "kolom_30",
+            "className": "text-center"
+          },
+          {
+            "name": "kolom_31",
+            "className": "text-center"
           },
 
           {

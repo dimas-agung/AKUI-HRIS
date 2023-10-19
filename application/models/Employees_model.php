@@ -466,6 +466,62 @@ class Employees_model extends CI_Model
 
         return $query;
     }
+    public function get_employees_by_jenis_gaji_load($jenis_gaji, $company_id)
+    {
+
+        $sql = 'SELECT kry.*,company.name as company_name,designation.designation_name as designation_name FROM view_karyawan_aktif  as kry
+                        LEFT JOIN xin_companies as company ON kry.company_id = company.company_id
+                        LEFT JOIN xin_designations as designation ON designation.designation_id = kry.designation_id
+                        WHERE kry.wages_type = ? and kry.company_id = ? and kry.is_active = ? 
+                        order by kry.date_of_joining desc';
+        $binds = array($jenis_gaji, $company_id, 1);
+        $query = $this->db->query($sql, $binds);
+
+        // echo "<pre>";
+        // print_r($this->db->last_query());
+        // echo "</pre>";
+        // die();
+
+        return $query;
+    }
+    public function get_employees_by_id($employee_id)
+    {
+
+        $sql = 'SELECT kry.*,company.name AS company_name,designation.designation_name AS designation_name,workstation.workstation_id  FROM view_karyawan_aktif  AS kry
+                        LEFT JOIN xin_companies AS company ON kry.company_id = company.company_id
+                        LEFT JOIN xin_designations AS designation ON designation.designation_id = kry.designation_id
+                        LEFT JOIN xin_workstation AS workstation ON designation.workstation_id = workstation.workstation_id
+                        WHERE kry.employee_id = ? and kry.is_active = ? 
+                        order by kry.date_of_joining desc';
+        $binds = array($employee_id, 1);
+        $query = $this->db->query($sql, $binds);
+
+        // echo "<pre>";
+        // print_r($this->db->last_query());
+        // echo "</pre>";
+        // die();
+
+        return $query->row();
+    }
+    public function get_employees_by_user_id($employee_id)
+    {
+
+        $sql = 'SELECT kry.*,company.name AS company_name,designation.designation_name AS designation_name,workstation.workstation_id  FROM view_karyawan_aktif  AS kry
+                        LEFT JOIN xin_companies AS company ON kry.company_id = company.company_id
+                        LEFT JOIN xin_designations AS designation ON designation.designation_id = kry.designation_id
+                        LEFT JOIN xin_workstation AS workstation ON designation.workstation_id = workstation.workstation_id
+                        WHERE kry.user_id = ? and kry.is_active = ? 
+                        order by kry.date_of_joining desc';
+        $binds = array($employee_id, 1);
+        $query = $this->db->query($sql, $binds);
+
+        // echo "<pre>";
+        // print_r($this->db->last_query());
+        // echo "</pre>";
+        // die();
+
+        return $query->row();
+    }
 
     // ================================================================================================================================
     // REKAP
@@ -2829,54 +2885,56 @@ class Employees_model extends CI_Model
         return $query->num_rows();
     }
 
-    public function count_employee_bpjs_tk($id, $deduction_date)
+    public function count_employee_bpjs_tk($id, $start_date, $end_date)
     {
 
-        $sql = 'SELECT * FROM xin_salary_statutory_deductions WHERE employee_id = ? and statutory_options = 1  and deduction_date <= ? ORDER BY deduction_date DESC LIMIT 1';
-        $binds = array($id, $deduction_date);
+        $sql = 'SELECT * FROM xin_salary_statutory_deductions WHERE employee_id = ? and statutory_options = 1   and deduction_date >= ?  and deduction_date <= ? ORDER BY deduction_date DESC LIMIT 1';
+        $binds = array($id,$start_date,$end_date);
         $query = $this->db->query($sql, $binds);
 
         return $query->num_rows();
     }
 
-    public function set_employee_bpjs_tk($id, $deduction_date)
+    public function set_employee_bpjs_tk($id,$start_date, $end_date)
     {
 
-        $sql = 'SELECT * FROM xin_salary_statutory_deductions WHERE employee_id = ? and statutory_options = 1  and deduction_date <= ? ORDER BY deduction_date DESC LIMIT 1';
-        $binds = array($id, $deduction_date);
+        $sql = 'SELECT * FROM xin_salary_statutory_deductions WHERE employee_id = ? and statutory_options = 1  and deduction_date >= ? and deduction_date <= ? ORDER BY deduction_date DESC LIMIT 1';
+        $binds = array($id,$start_date,$end_date);
         $query = $this->db->query($sql, $binds);
 
         return $query;
     }
 
-    public function count_employee_bpjs_kes($id, $deduction_date)
+    public function count_employee_bpjs_kes($id,$start_date, $end_date)
     {
         return $this->db
             ->where(array(
                 'employee_id' => $id,
                 'statutory_options' => 2,
             ))
-            ->where('deduction_date <=', $deduction_date)
+            ->where('deduction_date <=', $end_date)
+            ->where('deduction_date >=', $start_date)
             ->order_by('deduction_date', 'DESC')
             ->limit(1)
             ->get('xin_salary_statutory_deductions')
             ->num_rows();
     }
 
-    public function set_employee_bpjs_kes($id, $deduction_date)
+    public function set_employee_bpjs_kes($id,$start_date, $end_date)
     {
         return $this->db
             ->where(array(
                 'employee_id' => $id,
                 'statutory_options' => 2,
             ))
-            ->where('deduction_date <=', $deduction_date)
+            ->where('deduction_date <=', $end_date)
+            ->where('deduction_date >=', $start_date)
             ->order_by('deduction_date', 'DESC')
             ->limit(1)
             ->get('xin_salary_statutory_deductions');
     }
 
-    public function sum_all_employee_bpjs($id, $deduction_date)
+    public function sum_all_employee_bpjs($id, $start_date,$end_date)
     {
         // SELECT p1.*
         // FROM (SELECT * FROM xin_salary_statutory_deductions where deduction_date < '2023-07-01' ) p1 LEFT JOIN (SELECT * FROM xin_salary_statutory_deductions where deduction_date < '2023-07-01' ) p2
@@ -2887,7 +2945,8 @@ class Employees_model extends CI_Model
         // ORDER BY employee_id ASC;
 
         $sub_query = $this->db
-            ->where('deduction_date <=', $deduction_date)
+            ->where('deduction_date <=', $end_date)
+            ->where('deduction_date >=', $start_date)
             ->where_in('statutory_options', array(1, 2))
             ->get_compiled_select('xin_salary_statutory_deductions');
 

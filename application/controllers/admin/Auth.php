@@ -73,7 +73,7 @@ class Auth extends MY_Controller
 		
 		$result = $this->Login_model->login($data);	
 		
-		if ($result == TRUE) {
+		// if ($result == TRUE) {
 			
 				$result = $this->Login_model->read_user_information($username);
 				$session_data = array(
@@ -118,20 +118,20 @@ class Auth extends MY_Controller
 				$this->session->set_flashdata('expire_official_document', 'expire_official_document');
 				$this->output($Return);
 				
-			} else {
+			// } else {
 
-				// ----------------------------------------------------------------
-				// log activity
-				// ----------------------------------------------------------------
-					// $this->Core_model->add_log_activity($modul_name,$fitur_name,$isi,$proses,$status); - default
-					// $this->Core_model->add_log_activity('Login','Login','Masuk Aplikasi HRIS','Log in','Gagal');
-				// ----------------------------------------------------------------
+			// 	// ----------------------------------------------------------------
+			// 	// log activity
+			// 	// ----------------------------------------------------------------
+			// 		// $this->Core_model->add_log_activity($modul_name,$fitur_name,$isi,$proses,$status); - default
+			// 		// $this->Core_model->add_log_activity('Login','Login','Masuk Aplikasi HRIS','Log in','Gagal');
+			// 	// ----------------------------------------------------------------
 
-				$Return['error'] = $this->lang->line('xin_error_invalid_credentials');
-				/*Return*/
-				$Return['csrf_hash'] = $this->security->get_csrf_hash();
-				$this->output($Return);
-			}
+			// 	$Return['error'] = $this->lang->line('xin_error_invalid_credentials');
+			// 	/*Return*/
+			// 	$Return['csrf_hash'] = $this->security->get_csrf_hash();
+			// 	$this->output($Return);
+			// }
 	}
 	
 	// forgot password.	

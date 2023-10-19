@@ -2,7 +2,7 @@
 
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Timesheet extends MY_Controller {
+class GetAbsensi extends MY_Controller {
 	
 	 public function __construct() {
         parent::__construct();
@@ -31,41 +31,8 @@ class Timesheet extends MY_Controller {
 	// index > timesheet
 	
 	
-	// =============================================================================
-	// 0910 TARIK ABSENSI REGULER
-	// =============================================================================
 
-		// daily attendance > timesheet
-		public function attendance_reguler()
-	    {
-			$session = $this->session->userdata('username');
-			if(empty($session)){ 
-				redirect('admin/');
-			}
-			$data['title']       = 'Tarik Absensi Reguler | '.$this->Core_model->site_title();
-			$data['icon']        = '<i class="fa fa-hand-o-up"></i>';
-			$data['desc']        = '<span><b>INFORMASI : </b> Proses Tarik Absensi Setiap Hari ini dilakukan setelah Proses Pengajuan di Input semua </span>';
-			$data['breadcrumbs'] = 'Tarik Absensi Reguler (Per Hari / Tanggal)';
-			$data['path_url']    = 'attendance_reguler';
-			
-			$data['get_all_companies']    = $this->Company_model->get_company();
-			$data['all_office_shifts'] = $this->Location_model->all_payroll_jenis();
-			
-			$role_resources_ids        = $this->Core_model->user_role_resource();
-			
-			if(in_array('0911',$role_resources_ids)) {
-				if(!empty($session)){
-				$data['subview'] = $this->load->view("admin/timesheet/attendance_reguler_list", $data, TRUE);
-				$this->load->view('admin/layout/layout_main', $data); //page load
-				} else {
-					redirect('admin/dashboard/');
-				}	
-			} else {
-				redirect('admin/dashboard');
-			}	  
-	    }
-
-	    public function attendance_reguler_list_load()
+	    public function attendance_reguler_list()
 	    {
 
 			$data['title'] = $this->Core_model->site_title();

@@ -102,8 +102,9 @@ class Timesheet extends MY_Controller
         $employee = $this->Employees_model->get_attendance_jenis_gaji_employees_reguler_load($jenis_gaji, $company_id);
         //var_dump($employee->result());return;
         $system   = $this->Core_model->read_setting_info(1);
-        $sql1 = "DELETE FROM xin_attendance_time WHERE 1=1
-        AND company_id ='" . $company_id . "' AND  attendance_date = '" . $attendance_date . "' AND  jenis_gaji = '" . $jenis_gaji . "'  ";
+        $sql1 = "SELECT 
+        * FROM xin_attendance_time WHERE
+         company_id ='" . $company_id . "' AND  attendance_date = '" . $attendance_date . "' AND  jenis_gaji = '" . $jenis_gaji . "' AND jenis_kerja = 'R'  ";
 
         $query1   = $this->db->query($sql1);
 
@@ -111,255 +112,73 @@ class Timesheet extends MY_Controller
 
         $no = 1;
         $dataInsert = [];
-        
-        foreach ($employee->result() as $r) {
-            
-          
-            $comp_name = $r->company_name;
-            $designation_name = $r->designation_name;
-            // user full name
-            $full_name = $r->first_name . ' ' . $r->last_name;
-
-            $total_work = 0;
-            $early_leaving = 0;
-            $time_late = 0;
-            $overtime = 0;
-            $clock_in = '00:00:00';
-            $clock_out = '00:00:00';
-            $flag = 'H';
-            // get office time
-            $office_time = $this->get_office_time_in_out($attendance_date,$r->office_shift_id,'REGULAR');
-            $in_time = $office_time['in_time'];
-            $out_time = $office_time['out_time'];
-            $attendance_jadwal = $in_time . ' s/d ' . $out_time;
-            // var_dump($in_time);return;
-            // return 123123;
-            
-            // return;
-            // =========================================================================================================
-            // CEK HARI LIBUR
-            // =========================================================================================================
-            $check_hari_libur = $this->check_hari_libur($r->company_id,$attendance_date);
-            $attendance_in = $this->Timesheet_model->attendance_first_in_new($r->employee_pin, $attendance_date);
-             if ($r->date_of_joining > $attendance_date) {
-                    $attendance_jadwal = 'Belum Masuk';
-                    $attendance_status = 'Belum Masuk';
-                    $attendance_simbol = 'BM';
-                    $attendance_keterangan = 'Belum Mulai Kerja';
-            }
-            else if ($in_time == '00:00:00'  && empty($attendance_in)) {
-                $attendance_status                = $this->lang->line('xin_holiday');
-                $attendance_simbol         = $this->lang->line('xin_libur_simbol');
-                $attendance_simbol = 'L';
-                $attendance_keterangan = $this->lang->line('xin_holiday');
-                $flag = 'L';
-            }else if ($r->flag == 1) {
-                $attendance_status                = 'Free';
-                $attendance_simbol         = 'F';
-                $attendance_keterangan = 'Bebas Tanpa Absensi Mesin Finger';
-            }else if ($check_hari_libur['status'] == true  && empty($attendance_in)) {
-                $attendance_status = $check_hari_libur['attendance_status'] == false ? 'Libur' :$check_hari_libur['attendance_status'];
-               // $attendance_simbol = $check_hari_libur['attendance_simbol'];
-                $attendance_simbol = 'L';
-                $attendance_keterangan = $check_hari_libur['attendance_keterangan'];
-                $flag = 'L';
-                $attendance_jadwal = 'Libur';
-                // var_dump($check_hari_libur);return;
-              
-            }else{
-                // cek apakah karyawan sudah mulai bekerja
-                if ($r->date_of_joining > $attendance_date) {
-                    $attendance_jadwal = 'Belum Masuk';
-                    $attendance_status = 'Belum Masuk';
-                    $attendance_simbol = 'BM';
-                    $attendance_keterangan = 'Belum Mulai Kerja';
+        if ($query1->num_rows() > 0) {
+            # code...
+            foreach ($query1->result() as $r) {
+                
+                // user full name
+                $user_info      = $this->Employees_model->get_employees_by_user_id($r->employee_id);
+                // var_dump($user_info);return;
+                if (!empty($user_info)) {
+                    $user_id        = $user_info->user_id;
+                    $company_name        = $user_info->company_name;
+                    $full_name      = $user_info->first_name . ' ' . $user_info->last_name;
+                    $designation_name  = $user_info->designation_name;
+                    $department_id  = $user_info->department_id;
+                    $designation_id = $user_info->designation_id;
+                    $start_join = $user_info->date_of_joining;
                 } else {
-                    $get_day = strtotime($attendance_date);
-                    $day = date('l', $get_day);
-                  
-                    $attendance_jadwal = $in_time . ' s/d ' . $out_time;
-
-                    //cek libur kantor
-                    $check_hari_libur_kantor = $this->check_hari_libur_kantor($r->user_id,$attendance_date);
-
-                    if ($check_hari_libur_kantor['status']== true) {
-                        # code...
-                        // return;
-                        $attendance_status = $check_hari_libur_kantor['attendance_status'] == false ? 'Libur' :$check_hari_libur_kantor['attendance_status'];
-                        $attendance_simbol = 'L';
-                        //$attendance_simbol = $check_hari_libur_kantor['attendance_simbol'] == '' ? 'L' :$check_hari_libur_kantor['attendance_simbol'];
-                        $attendance_keterangan = $check_hari_libur_kantor['attendance_keterangan'];
-                        //$flag = 'L';
-                        // var_dump($check_hari_libur_kantor);return;
-                    }else{
-                        //cek cuti
-                        $check_cuti = $this->check_cuti_karyawan($r->user_id,$attendance_date);
-                        
-                        if ($check_cuti['status'] == true) {
-                            $attendance_status = $check_cuti['attendance_status'];
-                            $attendance_simbol = $check_cuti['attendance_simbol'];
-                            $attendance_keterangan = $check_cuti['attendance_keterangan'];
-                        }else{
-                             // cek dinas
-                            $check_dinas = $this->check_dinas_karyawan($r->user_id,$attendance_date);
-                            if ($check_dinas['status'] == true) {
-                                $attendance_status = $check_dinas['attendance_status'];
-                                $attendance_simbol = $check_dinas['attendance_simbol'];
-                                $attendance_keterangan = $check_dinas['attendance_keterangan'];
-                            }else{
-                                // cek sakit / izin
-                                $check_sakit_izin = $this->check_sakit_izin_karyawan($r->user_id,$attendance_date);
-                                // get data check in 
-
-                                $attendance_in = $this->Timesheet_model->attendance_first_in_new($r->employee_pin, $attendance_date);
-                                // var_dump($r->employee_pin);
-                                // var_dump($attendance_in);
-                                // return;
-                                // check clock out time
-                                // get data from adms -> view absen keluar
-                                $attendance_out = $this->Timesheet_model->attendance_first_out_new($r->employee_pin, $attendance_date);
-                                //cek apakah dia sudah checlok pulang
-                                if ($check_sakit_izin['status'] == true) {
-                                    $attendance_status = $check_sakit_izin['attendance_status'];
-                                    $attendance_simbol = $check_sakit_izin['attendance_simbol'];
-                                    $attendance_keterangan = $check_sakit_izin['attendance_keterangan'];
-                                    // cek apakah dia masuk/checklock
-                                    if (!empty($attendance_in)) {
-                                        $clock_in =$attendance_in[0]->clock_in;
-                                        
-                                        if (!empty($attendance_out)) {
-                                            $clock_out = $attendance_out[0]->clock_out;
-                                            $total_work_cin  =  new DateTime($clock_in);
-                                            $total_work_cout =  new DateTime($clock_out);
-
-                                            $interval_cin = $total_work_cout->diff($total_work_cin);
-                                            $hours_in   = $interval_cin->format('%h');
-                                            $minutes_in = $interval_cin->format('%i');
-                                            $total_work = $hours_in * 60 + $minutes_in;
-
-                                            $time_late = $this->check_terlambat($attendance_date,$in_time,$clock_in);
-                                            $early_leaving = $this->check_pulang_cepat($attendance_date,$out_time,$clock_out);
-                                        }else{
-                                            // status absen
-                                            $attendance_status     = $this->lang->line('xin_absent');
-                                            $attendance_simbol         = $this->lang->line('xin_absent_simbol');
-                                            $attendance_keterangan = $this->lang->line('xin_absent_ket');
-                                        }
-                                    }
-                                }else{
-                                    //  cek apakah sudah checklock masuk / pulang
-                                    if (empty($attendance_in) || empty($attendance_out)) {
-                                        # code...
-                                        if (!empty($attendance_in)) {
-                                            $clock_in = $attendance_in[0]->clock_in;
-                                            $time_late = $this->check_terlambat($attendance_date,$in_time,$clock_in);
-                                        }
-                                        if (!empty($attendance_out)) {
-                                            $clock_out = $attendance_out[0]->clock_out;
-                                            $early_leaving = $this->check_pulang_cepat($attendance_date,$out_time,$clock_out);
-                                            $overtime = $this->check_over_time_checklock($attendance_date,$out_time,$clock_out);
-                                        }
-                                        $attendance_status     = $this->lang->line('xin_absent');
-                                        $attendance_simbol         = $this->lang->line('xin_absent_simbol');
-                                        $attendance_keterangan = $this->lang->line('xin_absent_ket');
-                                    }else{
-                                        $clock_in = $attendance_in[0]->clock_in;
-                                        $clock_out = $attendance_out[0]->clock_out;
-                                        // var_dump($clock_in);return;
-                                        $total_work_cin  =  new DateTime($clock_in);
-                                        $total_work_cout =  new DateTime($clock_out);
-
-                                        $interval_cin = $total_work_cout->diff($total_work_cin);
-                                        $hours_in   = $interval_cin->format('%h');
-                                        $minutes_in = $interval_cin->format('%i');
-                                        $total_work = $hours_in * 60 + $minutes_in;
-
-                                        $time_late = $this->check_terlambat($attendance_date,$in_time,$clock_in);
-                                        $early_leaving = $this->check_pulang_cepat($attendance_date,$out_time,$clock_out);
-                                        $overtime = $this->check_over_time_checklock($attendance_date,$out_time,$clock_out);
-                                        $check_lembur = $this->check_lembur($r->user_id,$attendance_date);
-                                        if ($check_lembur['status'] == true) {
-                                            $attendance_status = $check_lembur['attendance_status'];
-                                            $attendance_simbol = $check_lembur['attendance_simbol'];
-                                            $attendance_keterangan = $check_lembur['attendance_keterangan'];
-                                        }else{
-                                            $attendance_status     = $attendance_in[0]->attendance_status;
-                                            $attendance_simbol     = 'H';
-                                            $attendance_keterangan = 'Masuk';
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    $user_id        = '';
+                    $emp_nik        = '';
+                    $designation_name  = '';
+                    $company_name        = '';
+                    $full_name      = '';
+                    $department_id  = '';
+                    $designation_id = '';
+                    $designation_id = '';
                 }
-            }
-            $dataInsert[] = [
-                'employee_id' =>$r->user_id,
-                'employee_pin' =>$r->employee_pin,
-                'company_id' =>$r->company_id,
-                'location_id' => $r->location_id,
-                'date_of_joining' => $r->date_of_joining,
-                'jenis_gaji' => $jenis_gaji,
-                'jenis_kerja' => 'R',
-                'attendance_jadwal' =>$attendance_jadwal,
-                'flag' =>$flag,
-                'attendance_date' =>$attendance_date,
-                'clock_in' =>$clock_in,
-                'clock_out' =>$clock_out,
-                'time_late' =>$time_late,
-                'early_leaving' =>$early_leaving,
-                'overtime' =>$overtime,
-                'total_work' =>$total_work,
-                'attendance_status' =>$attendance_status,
-                'attendance_status_simbol' =>$attendance_simbol,
-                'attendance_keterangan' =>$attendance_keterangan,
-                'rekap_date' => date('Y-m-d H:i:s')
-            ];
-
-
-            if ($clock_in == '00:00:00') {
-                $jam_masuk = '-';
-            } else {
-                $jam_masuk = $clock_in;
-            }
-
-            if ($clock_out == '00:00:00') {
-                $jam_pulang = '-';
-            } else {
-                $jam_pulang = $clock_out;
-            }
-
-            $d_date = $this->Core_model->set_date_format($attendance_date);
-
-            $data[] = array(
-                $no,
-                strtoupper($full_name),
-                date("d-m-Y", strtotime($r->date_of_joining)),
-                substr(strtoupper($designation_name), 0, 30),
-                $comp_name,
-                $attendance_jadwal,
-                $d_date,
-                $attendance_status,
-                $jam_masuk,
-                $jam_pulang,
-                $time_late,
-                $early_leaving,
-                $overtime,
-                $total_work,
-                $attendance_keterangan
-            );
-            $no++;
-            // break;
-            // }
-        }
         
-        $this->db->insert_batch('xin_attendance_time', $dataInsert);
+                $attendance_status = $r->attendance_status;
+                $attendance_keterangan = $r->attendance_keterangan;
+                $time_late = $r->time_late;
+                $early_leaving = $r->early_leaving;
+                $overtime = $r->overtime;
+                $total_work = $r->total_work;
+                $attendance_jadwal = $r->attendance_jadwal;
+                $jam_masuk = $r->clock_in;
+                $jam_pulang = $r->clock_out;
+    
+                $d_date = $this->Core_model->set_date_format($attendance_date);
+    
+                $data[] = array(
+                    $no,
+                    strtoupper($full_name),
+                    date("d-m-Y", strtotime($r->date_of_joining)),
+                    substr(strtoupper($designation_name), 0, 30),
+                    $company_name,
+                    $attendance_jadwal,
+                    $d_date,
+                    $attendance_status,
+                    $jam_masuk,
+                    $jam_pulang,
+                    $time_late,
+                    $early_leaving,
+                    $overtime,
+                    $total_work,
+                    $attendance_keterangan
+                );
+                $no++;
+                // break;
+                // }
+            }
+        }else{
+
+        }
 
         $output = array(
             "draw" => $draw,
-            "recordsTotal" => $employee->num_rows(),
-            "recordsFiltered" => $employee->num_rows(),
+            "recordsTotal" => $query1->num_rows(),
+            "recordsFiltered" => $query1->num_rows(),
             "data" => $data
         );
         echo json_encode($output);
@@ -1905,7 +1724,7 @@ class Timesheet extends MY_Controller
                     $r->total
                 )
             );
-
+            
             $no++;
         }
 
@@ -1977,7 +1796,7 @@ class Timesheet extends MY_Controller
         $jenis_gaji         = 2;
         $pola_kerja         = $this->input->get("pola_kerja");
         $period_id          = $this->input->get("period_id");
-
+        $month_year           = $this->input->get("month_year");
         // ===============================================================================================================
         // Tampilkan
         // ===============================================================================================================
@@ -1991,27 +1810,63 @@ class Timesheet extends MY_Controller
             $end_date      = '';
         }
 
-        $employees = $this->Timesheet_model->get_xin_employees_harian_rekap($company_id, $start_date, $end_date, TRUE, $pola_kerja);
+        $employees = $this->Timesheet_model->get_xin_employees_harian_rekap_month($company_id, $month_year, TRUE, $pola_kerja);
         $data = array();
         $no = 1;
+        $start_date = new DateTime($start_date);
+        $start = (int) $start_date->format('j');
+        $end_date = new DateTime($end_date);
+        $end = (int) $end_date->format('j');
 
         foreach ($employees as $r) {
-            $data[] = array(
-                $no,
-                strtoupper(implode(' ', array($r->first_name, $r->last_name))),
-                $r->libur,
-                $r->libur_kantor,
-                $r->aktif,
-                $r->sakit,
-                $r->izin,
-                $r->cuti,
-                $r->alpa,
-                $r->dinas,
-                $r->terlambat_menit + 0,
-                $r->terlambat_jam,
-                $r->total
+            $attendances = array();
+            for ($i=1; $i <= 31 ; $i++) { 
+                $attendances[] = $r->{"tanggal_{$i}"} == null ? '' :$r->{"tanggal_{$i}"};
+                $start = $start == 31 ? $start = 1 : $start + 1;
+                // echo $i;
+            }
+            // var_dump($attendances);return;
+            // foreach (range($start, 31) as $i) {
+            // }
+            // $data[] = array(
+            //     $no,
+            //     strtoupper(implode(' ', array($r->first_name, $r->last_name))),
+            //     $r->libur,
+            //     $r->libur_kantor,
+            //     $r->aktif,
+            //     $r->sakit,
+            //     $r->izin,
+            //     $r->cuti,
+            //     $r->alpa,
+            //     $r->dinas,
+            //     $r->terlambat_menit + 0,
+            //     $r->terlambat_jam,
+            //     $r->total
+            // );
+            $data[] = array_merge(
+                array(
+                    $no,
+                    strtoupper(implode(' ', array($r->first_name, $r->last_name))),
+                ),
+                $attendances,
+                array(
+                    $r->libur,
+                    $r->libur_kantor,
+                    $r->aktif,
+                    $r->sakit,
+                    $r->izin,
+                    $r->cuti,
+                    $r->alpa,
+                    $r->dinas,
+                    $r->terlambat_menit,
+                    $r->terlambat_jam,
+                    $r->total
+                )
             );
-
+            // if ($no==2) {
+            //     # code...
+            //     break;
+            // }
             $no++;
         }
 
@@ -2038,7 +1893,7 @@ class Timesheet extends MY_Controller
             $month_year         = $this->input->post("month_year");
             $periode_id           = $this->input->post("periode_id");
 
-            $tanggal = $this->Timesheet_model->read_periode_bulan($periode_id);
+            $tanggal = $this->Timesheet_model->read_tanggal_information($month_year);
             if (!is_null($tanggal)) {
 
                 $tanggal1     = $tanggal[0]->start_date;
@@ -2050,11 +1905,13 @@ class Timesheet extends MY_Controller
             } else {
                 $tanggal1     = '';
                 $tanggal2       = '';
-
+                
                 $start_date    = '';
                 $end_date      = '';
                 $interval_date = '';
             }
+            // $tanggal1     = '2023-09-01';
+            // $tanggal2       = '2023-09-30';
 
             // echo "<pre>";
 
@@ -2063,13 +1920,17 @@ class Timesheet extends MY_Controller
             // print_r( $month_year );
             // print_r( $periode_id );
 
+            // $sql1 = "DELETE FROM xin_attendance_time_rekap_harian
+            //                  WHERE 1=1
+            //                  AND  company_id = '" . $company_id . "'
+            //                  AND  office_id  = '" . $pola_kerja . "'
+            //                  AND  start_date = '" . $tanggal1 . "'
+            //                  AND  end_date   = '" . $tanggal2 . "'  ";
             $sql1 = "DELETE FROM xin_attendance_time_rekap_harian
                              WHERE 1=1
                              AND  company_id = '" . $company_id . "'
                              AND  office_id  = '" . $pola_kerja . "'
-                             AND  start_date = '" . $tanggal1 . "'
-                             AND  end_date   = '" . $tanggal2 . "'  ";
-
+                             AND  month_year = '" . $month_year . "'  ";
             // print_r($sql1);
             // exit();
 
@@ -2081,174 +1942,257 @@ class Timesheet extends MY_Controller
             } else {
                 $Return['error'] = $this->lang->line('xin_record_not_found');
             }
+            // all employee id
+            $emp_ids = array();
+            foreach ($tampilkan_karyawan as $emp) {
+                $emp_ids[] = $emp->user_id;
+            }
+
+            $date1 = str_replace('-', '/', $tanggal2);
+            $date2 = date('Y-m-d',strtotime($date1 . "+1 days"));
+            $period = new DatePeriod(
+                new DateTime($tanggal1),
+                new DateInterval('P1D'),
+                new DateTime($date2)
+            );
+           $attendance_dates = [];
+           foreach ($period as $key => $value) {
+               //$value->format('Y-m-d') 
+               $attendance_dates[] = $value->format('Y-m-d');
+           }
+            // get all employee attendance symbol
+           $get_attendance_data = $this->Timesheet_model->cek_multi_status_kehadiran($emp_ids, $attendance_dates);
+            //    var_dump($attendance_dates);return;
+            //  print_r($this->db->last_query());
+            if (!empty($get_attendance_data)) {
+            # code...
+            foreach ($get_attendance_data as $ad) {
+                if (!isset($attendance_data[$ad->employee_id])) {
+                    $attendance_data[$ad->employee_id] = array();
+                }
+ 
+                $attendance_data[$ad->employee_id][$ad->attendance_date] = $ad->attendance_status_simbol;
+            }
+           }
 
             // 	print_r( $this->db->last_query() );
 
 
             // echo "</pre>";
             // die();
+            // count attendance all employee
+            $symbol = array('L', 'LK', 'H', 'S', 'I', 'C', 'A', 'D', 'O');
+            $get_all_total_attendance = $this->Timesheet_model->hitung_multi_jumlah_status_kehadiran($emp_ids, $tanggal1, $tanggal2, $symbol);
+            $all_total_attendance = array();
+            foreach ($get_all_total_attendance as $gata) {
+                if (!isset($all_total_attendance[$gata->employee_id])) {
+                    $all_total_attendance[$gata->employee_id] = array();
+                }
 
-            foreach ($tampilkan_karyawan as $r) {
+                $all_total_attendance[$gata->employee_id][$gata->attendance_status_simbol] = $gata->jumlah;
+            }
+            // var_dump($get_all_total_attendance);return;
 
+            // count time late all employee
+            $get_all_late = $this->Timesheet_model->hitung_jumlah_terlambat_kehadiran($emp_ids, $tanggal1, $tanggal2);
+            $all_late = array();
+            foreach ($get_all_late as $gal) {
+                $all_late[$gal->employee_id] = $gal->jumlah;
+            }
 
-
-                // ==================================================================================================================
-                // Rekap Pengajuan
-                // ==================================================================================================================
-
-                // -------------------------------------------------------------------------------------------------------------
-                // LIBUR
-                // -------------------------------------------------------------------------------------------------------------
-                $cek_libur = $this->Timesheet_model->hitung_jumlah_status_kehadiran($r->user_id, $tanggal1, $tanggal2, 'L');
-                $jumlah_libur = $cek_libur ? $cek_libur[0]->jumlah : 0;
-
-
-                // -------------------------------------------------------------------------------------------------------------
-                // LIBUR KANTOR
-                // -------------------------------------------------------------------------------------------------------------
-
-                $cek_libur_kantor = $this->Timesheet_model->hitung_jumlah_status_kehadiran($r->user_id, $tanggal1, $tanggal2, 'LK');
-                $jumlah_libur_kantor = $cek_libur_kantor ? $cek_libur_kantor[0]->jumlah : 0;
-
-                // -------------------------------------------------------------------------------------------------------------
-                // HADIR
-                // -------------------------------------------------------------------------------------------------------------
-                $cek_hadir = $this->Timesheet_model->hitung_jumlah_status_kehadiran($r->user_id, $tanggal1, $tanggal2, 'H');
-                if ($r->flag == 0) {
-                    $jumlah_hadir = $cek_hadir ? $cek_hadir[0]->jumlah : 0;
-                } else {
-
-                    if ($r->date_of_joining > $tanggal1) {
-                        $jumlah_hadir = $interval_date->d - $jumlah_libur - ($cek_hadir ? $cek_hadir[0]->jumlah : 0) - $jumlah_libur_kantor;
-                    } else {
-                        $jumlah_hadir = $interval_date->d - $jumlah_libur - $jumlah_libur_kantor;
+            $data = array();
+            if (!empty($get_attendance_data)) {
+                foreach ($tampilkan_karyawan as $r) {
+    
+                    foreach ($period as $key => $value) {
+                        //$value->format('Y-m-d') 
+                        $attendance_date = $value->format('Y-m-d');
+                        $t_tgl = (int)$value->format('d');
+                        if (isset($attendance_data[$r->user_id]) && isset($attendance_data[$r->user_id][$attendance_date])) {
+                            $status = $attendance_data[$r->user_id][$attendance_date];
+                            if ($status == 'H') {
+                                if ($r->date_of_joining > $attendance_date) {
+                                    $tgl = 'BM';
+                                } else {
+                                    $tgl = '.';
+                                }
+                            } else {
+                                if ($r->flag == 0) {
+                                    $tgl = $status;
+                                } else if ($r->flag == 1) {
+                                    if ($r->date_of_joining > $attendance_date) {
+                                        $tgl = 'BM';
+                                    } else if ($status == 'L') {
+                                        $tgl = 'L';
+                                    } else if ($status == 'LK') {
+                                        $tgl = 'LK';
+                                    } else {
+                                        $tgl = '.';
+                                    }
+                                }
+                            }
+                        } else {
+                            $tgl = '?';
+                        }
+    
+                        ${"T_{$t_tgl}"} = $tgl;
                     }
+    
+    
+                     // ==================================================================================================================
+                    // Rekap Pengajuan
+                    // ==================================================================================================================
+                    $get_total_attendance = isset($all_total_attendance[$r->user_id]) ? $all_total_attendance[$r->user_id] : array();
+                    $total_attendance = array();
+                    foreach ($get_total_attendance as $symbol => $jumlah) {
+                        $total_attendance[$symbol] = $jumlah;
+                    }
+    
+                    // -------------------------------------------------------------------------------------------------------------
+                    // LIBUR
+                    // -------------------------------------------------------------------------------------------------------------
+                    $jumlah_libur = isset($total_attendance['L']) ? $total_attendance['L'] : 0;
+    
+                    // -------------------------------------------------------------------------------------------------------------
+                    // LIBUR KANTOR
+                    // -------------------------------------------------------------------------------------------------------------
+                    $jumlah_libur_kantor = isset($total_attendance['LK']) ? $total_attendance['LK'] : 0;
+    
+                    // -------------------------------------------------------------------------------------------------------------
+                    // HADIR
+                    // -------------------------------------------------------------------------------------------------------------
+                    $jumlah_hadir = isset($total_attendance['H']) ? $total_attendance['H'] : 0;
+                    if ($r->flag == 0) {
+                        $jumlah_hadir = $jumlah_hadir;
+                    } else {
+                        if ($r->date_of_joining > $tanggal1) {
+                            $jumlah_hadir = $interval_date->d - $jumlah_libur - $jumlah_hadir - $jumlah_libur_kantor;
+                        } else {
+                            $jumlah_hadir = $interval_date->d - $jumlah_libur - $jumlah_libur_kantor;
+                        }
+                    }
+    
+                    // -------------------------------------------------------------------------------------------------------------
+                    // SAKIT
+                    // -------------------------------------------------------------------------------------------------------------
+                    $jumlah_sakit = isset($total_attendance['S']) ? $total_attendance['S'] : 0;
+    
+                    // -------------------------------------------------------------------------------------------------------------
+                    // IZIN
+                    // -------------------------------------------------------------------------------------------------------------
+                    $jumlah_izin = isset($total_attendance['I']) ? $total_attendance['I'] : 0;
+    
+                    // -------------------------------------------------------------------------------------------------------------
+                    // CUTI
+                    // -------------------------------------------------------------------------------------------------------------
+                    $jumlah_cuti = isset($total_attendance['C']) ? $total_attendance['C'] : 0;
+    
+                    // -------------------------------------------------------------------------------------------------------------
+                    // ALPA
+                    // -------------------------------------------------------------------------------------------------------------
+                    if ($r->flag == 0) {
+                        $jumlah_alpa = isset($total_attendance['A']) ? $total_attendance['A'] : 0;
+                    } else {
+                        $jumlah_alpa = 0;
+                    }
+    
+                    // -------------------------------------------------------------------------------------------------------------
+                    // DINAS
+                    // -------------------------------------------------------------------------------------------------------------
+                    $jumlah_dinas = isset($total_attendance['D']) ? $total_attendance['D'] : 0;
+    
+                    // -------------------------------------------------------------------------------------------------------------
+                    // LEMBUR
+                    // -------------------------------------------------------------------------------------------------------------
+                    $jumlah_lembur = isset($total_attendance['O']) ? $total_attendance['O'] : 0;
+    
+                    // -------------------------------------------------------------------------------------------------------------
+                    // TERLAMBAT
+                    // -------------------------------------------------------------------------------------------------------------\
+                    $jumlah_terlambat = isset($all_late[$r->user_id]) ? $all_late[$r->user_id] : 0;
+    
+                    // -------------------------------------------------------------------------------------------------------------
+                    // MENIT
+                    // -------------------------------------------------------------------------------------------------------------
+                    $jumlah_terlambat_menit = $jumlah_terlambat;
+    
+                    // -------------------------------------------------------------------------------------------------------------
+                    // JAM
+                    // -------------------------------------------------------------------------------------------------------------
+                    $jumlah_terlambat_jam = round($jumlah_terlambat / 60, 2);
+    
+                    // -------------------------------------------------------------------------------------------------------------
+                    // TOTAL
+                    // -------------------------------------------------------------------------------------------------------------
+                    $jumlah_total = 0;
+                    $jumlah_total = $jumlah_hadir + $jumlah_libur + $jumlah_libur_kantor + $jumlah_sakit + $jumlah_izin + $jumlah_cuti + $jumlah_alpa + $jumlah_dinas + $jumlah_lembur;
+    
+                    // ==================================================================================================================
+                    // Simpan Rekap
+                    // ==================================================================================================================
+    
+                    // $data_payroll = array(
+                    // 	'is_payroll' => 1
+                    // );
+    
+                    // $this->Timesheet_model->update_bulan_gaji($data_payroll,$month_year);
+    
+                    $session_id = $this->session->userdata('user_id');
+                    $user_create = $session_id['user_id'];
+    
+                    $attendance_status = array();
+                    for ($i = 1; $i <= 31; $i++) {
+                        $name = "T_{$i}";
+                        $attendance_status["tanggal_{$i}"] = isset($$name) ? $$name : NULL;
+                    }    
+                    $_data = array(
+                        'employee_id'     => $r->user_id,
+                        'wages_type'      => $r->wages_type,
+                        'company_id'      => $r->company_id,
+                        'office_id'          => $r->office_id,
+                        'is_active'       => $r->is_active,
+                        'date_of_joining' => $r->date_of_joining,
+                        'department_id'   => $r->department_id,
+                        'designation_id'  => $r->designation_id,
+                        'flag'            => $r->flag,
+                        'start_date'      => $tanggal1,
+                        'end_date'        => $tanggal2,
+                        'month_year'      => $month_year,
+                        'durasi'          => $interval_date->d + 1,
+
+                        'libur'           => $jumlah_libur,
+                        'libur_kantor'    => $jumlah_libur_kantor,
+                        'aktif'           => $jumlah_hadir + $jumlah_lembur,
+                        'sakit'           => $jumlah_sakit,
+                        'izin'            => $jumlah_izin,
+                        'cuti'            => $jumlah_cuti,
+                        'alpa'            => $jumlah_alpa,
+                        'dinas'           => $jumlah_dinas,
+                        'terlambat_menit' => $jumlah_terlambat_menit,
+                        'terlambat_jam'   => $jumlah_terlambat_jam,
+                        'total'           => $jumlah_total,
+    
+                        'create_date'     => date('Y-m-d h:i:s'),
+                        'create_by'       => $user_create,
+    
+                    );
+                    $data[] = array_merge($_data, $attendance_status);
+    
+                    
+                    // echo "<pre>";
+                    // print_r( $result );
+                    // echo "</pre>";
+                    // die();
+                    
                 }
+            }
+            $result = $this->Timesheet_model->add_employee_attendance_rekap_harian_reguler($data);
+            // print_r($this->db->last_query());
+            if ($result) {
 
-                // -------------------------------------------------------------------------------------------------------------
-                // SAKIT
-                // -------------------------------------------------------------------------------------------------------------
-                $cek_sakit = $this->Timesheet_model->hitung_jumlah_status_kehadiran($r->user_id, $tanggal1, $tanggal2, 'S');
-                $jumlah_sakit = $cek_sakit ? $cek_sakit[0]->jumlah : 0;
-
-                // -------------------------------------------------------------------------------------------------------------
-                // IZIN
-                // -------------------------------------------------------------------------------------------------------------
-                $cek_izin = $this->Timesheet_model->hitung_jumlah_status_kehadiran($r->user_id, $tanggal1, $tanggal2, 'I');
-                $jumlah_izin = $cek_izin ? $cek_izin[0]->jumlah : 0;
-
-                // -------------------------------------------------------------------------------------------------------------
-                // CUTI
-                // -------------------------------------------------------------------------------------------------------------
-                $cek_cuti = $this->Timesheet_model->hitung_jumlah_status_kehadiran($r->user_id, $tanggal1, $tanggal2, 'C');
-                $jumlah_cuti = $cek_cuti ? $cek_cuti[0]->jumlah : 0;
-
-                // -------------------------------------------------------------------------------------------------------------
-                // ALPA
-                // -------------------------------------------------------------------------------------------------------------
-
-                $cek_alpa = $this->Timesheet_model->hitung_jumlah_status_kehadiran($r->user_id, $tanggal1, $tanggal2, 'A');
-
-                if ($r->flag == 0) {
-                    $jumlah_alpa = $cek_alpa ? $cek_alpa[0]->jumlah : 0;
-                } else {
-                    $jumlah_alpa = 0;
-                }
-
-                // -------------------------------------------------------------------------------------------------------------
-                // DINAS
-                // -------------------------------------------------------------------------------------------------------------
-                $cek_dinas = $this->Timesheet_model->hitung_jumlah_status_kehadiran($r->user_id, $tanggal1, $tanggal2, 'D');
-                $jumlah_dinas = $cek_dinas ? $cek_dinas[0]->jumlah: 0;
-
-                // -------------------------------------------------------------------------------------------------------------
-                // LEMBUR
-                // -------------------------------------------------------------------------------------------------------------
-                $cek_lembur = $this->Timesheet_model->hitung_jumlah_status_kehadiran($r->user_id, $tanggal1, $tanggal2, 'O');
-                $jumlah_lembur = $cek_lembur ? $cek_lembur[0]->jumlah: 0;
-
-                // -------------------------------------------------------------------------------------------------------------
-                // TERLAMBAT
-                // -------------------------------------------------------------------------------------------------------------
-                $cek_terlambat = $this->Timesheet_model->hitung_jumlah_terlambat_kehadiran($r->user_id, $tanggal1, $tanggal2);
-                $jumlah_terlambat = $cek_terlambat ? $cek_terlambat[0]->jumlah: 0;
-
-                // -------------------------------------------------------------------------------------------------------------
-                // MENIT
-                // -------------------------------------------------------------------------------------------------------------
-                $jumlah_terlambat_menit = $jumlah_terlambat;
-                // -------------------------------------------------------------------------------------------------------------
-                // JAM
-                // -------------------------------------------------------------------------------------------------------------
-                $jumlah_terlambat_jam = round($jumlah_terlambat / 60, 2);
-
-                // -------------------------------------------------------------------------------------------------------------
-                // TOTAL
-                // -------------------------------------------------------------------------------------------------------------
-                $jumlah_total = 0;
-
-                $jumlah_total = $jumlah_hadir + $jumlah_libur + $jumlah_libur_kantor + $jumlah_sakit + $jumlah_izin + $jumlah_cuti + $jumlah_alpa + $jumlah_dinas + $jumlah_lembur;
-
-                // ==================================================================================================================
-                // Simpan Rekap
-                // ==================================================================================================================
-
-                // $data_payroll = array(
-                // 	'is_payroll' => 1
-                // );
-
-                // $this->Timesheet_model->update_bulan_gaji($data_payroll,$month_year);
-
-                $session_id = $this->session->userdata('user_id');
-                $user_create = $session_id['user_id'];
-
-
-                $data = array(
-
-                    'employee_id'     => $r->user_id,
-                    'wages_type'      => $r->wages_type,
-                    'company_id'      => $r->company_id,
-                    'office_id'          => $r->office_id,
-                    'is_active'       => $r->is_active,
-                    'date_of_joining' => $r->date_of_joining,
-                    'department_id'   => $r->department_id,
-                    'designation_id'  => $r->designation_id,
-                    'flag'            => $r->flag,
-                    'start_date'      => $tanggal1,
-                    'end_date'        => $tanggal2,
-
-                    'durasi'          => $interval_date->d + 1,
-
-                    'libur'           => $jumlah_libur,
-                    'libur_kantor'    => $jumlah_libur_kantor,
-                    'aktif'           => $jumlah_hadir,
-                    'sakit'           => $jumlah_sakit,
-                    'izin'            => $jumlah_izin,
-                    'cuti'            => $jumlah_cuti,
-                    'alpa'            => $jumlah_alpa,
-                    'dinas'           => $jumlah_dinas,
-                    'terlambat_menit' => $jumlah_terlambat_menit,
-                    'terlambat_jam'   => $jumlah_terlambat_jam,
-                    'total'           => $jumlah_total,
-
-                    'create_date'     => date('Y-m-d h:i:s'),
-                    'create_by'       => $user_create,
-
-                );
-
-                $result = $this->Timesheet_model->add_employee_attendance_rekap_harian_reguler($data);
-
-                // echo "<pre>";
-                // print_r( $result );
-                // echo "</pre>";
-                // die();
-
-                if ($result) {
-
-                    $Return['result'] = 'Rekap Kehadiran Harian Berhasil Diproses';
-                } else {
-                    $Return['error'] = $this->lang->line('xin_error_msg');
-                }
+                $Return['result'] = 'Rekap Kehadiran Harian Berhasil Diproses';
+            } else {
+                $Return['error'] = $this->lang->line('xin_error_msg');
             }
 
             $this->output($Return);
@@ -2313,7 +2257,7 @@ class Timesheet extends MY_Controller
         $jenis_gaji         = 2;
         $pola_kerja         = $this->input->get("pola_kerja");
         $period_id          = $this->input->get("period_id");
-
+        $month_year           = $this->input->get("month_year");
         // ===============================================================================================================
         // Tampilkan
         // ===============================================================================================================
@@ -2326,30 +2270,67 @@ class Timesheet extends MY_Controller
             $start_date    = '';
             $end_date      = '';
         }
-
-        $employees = $this->Timesheet_model->get_employees_borongan_rekap($company_id, $start_date, $end_date, TRUE, $pola_kerja);
+        // var_dump($tanggal[0]);return;
+        $employees = $this->Timesheet_model->get_employees_borongan_rekap_month($company_id, $month_year, TRUE, $pola_kerja);
         $data = array();
         $no = 1;
 
+        $start_date = new DateTime($start_date);
+        $start = (int) $start_date->format('j');
+        $end_date = new DateTime($end_date);
+        $end = (int) $end_date->format('j');
         foreach ($employees as $r) {
-            $data[] = array(
-                $no,
-                strtoupper(implode(' ', array($r->first_name, $r->last_name))),
-                $r->libur,
-                $r->libur_kantor,
-                $r->aktif,
-                $r->sakit,
-                $r->izin,
-                $r->cuti,
-                $r->alpa,
-                $r->dinas,
-                $r->terlambat_menit + 0,
-                $r->terlambat_jam,
-                $r->total
+            $attendances = array();
+            for ($i=1; $i <= 31 ; $i++) { 
+                $attendances[] = $r->{"tanggal_{$i}"} == null ? '' :$r->{"tanggal_{$i}"};
+                $start = $start == 31 ? $start = 1 : $start + 1;
+                // echo $i;
+            }
+            // var_dump($attendances);return;
+            // foreach (range($start, 31) as $i) {
+            // }
+            // $data[] = array(
+            //     $no,
+            //     strtoupper(implode(' ', array($r->first_name, $r->last_name))),
+            //     $r->libur,
+            //     $r->libur_kantor,
+            //     $r->aktif,
+            //     $r->sakit,
+            //     $r->izin,
+            //     $r->cuti,
+            //     $r->alpa,
+            //     $r->dinas,
+            //     $r->terlambat_menit + 0,
+            //     $r->terlambat_jam,
+            //     $r->total
+            // );
+            $data[] = array_merge(
+                array(
+                    $no,
+                    strtoupper(implode(' ', array($r->first_name, $r->last_name))),
+                ),
+                $attendances,
+                array(
+                    $r->libur,
+                    $r->libur_kantor,
+                    $r->aktif,
+                    $r->sakit,
+                    $r->izin,
+                    $r->cuti,
+                    $r->alpa,
+                    $r->dinas,
+                    $r->terlambat_menit,
+                    $r->terlambat_jam,
+                    $r->total
+                )
             );
-
+            // if ($no==2) {
+            //     # code...
+            //     break;
+            // }
             $no++;
         }
+        // var_dump($data[1]);return;
 
         $output = array(
             "draw"            => $draw,
@@ -2360,8 +2341,321 @@ class Timesheet extends MY_Controller
 
         return json_response($output);
     }
-
     public function attendance_rekap_borongan_proses()
+    {
+        $Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
+        $Return['csrf_hash'] = $this->security->get_csrf_hash();
+
+        if ($this->input->post('add_type') == 'rekap') {
+
+            $company_id         = $this->input->post("company_id");
+            $pola_kerja         = $this->input->post("pola_kerja");
+
+            $month_year         = $this->input->post("month_year");
+            $periode_id           = $this->input->post("periode_id");
+
+            $tanggal = $this->Timesheet_model->read_tanggal_information($month_year);
+            if (!is_null($tanggal)) {
+
+                $tanggal1     = $tanggal[0]->start_date;
+                $tanggal2       = $tanggal[0]->end_date;
+
+                $start_date    = new DateTime($tanggal[0]->start_date);
+                $end_date      = new DateTime($tanggal[0]->end_date);
+                $interval_date = $end_date->diff($start_date);
+            } else {
+                $tanggal1     = '';
+                $tanggal2       = '';
+                
+                $start_date    = '';
+                $end_date      = '';
+                $interval_date = '';
+            }
+            // echo $tanggal1;
+            // echo $tanggal2;
+            // return;
+            // $tanggal1     = '2023-09-01';
+            // $tanggal2       = '2023-09-30';
+
+            // echo "<pre>";
+
+            // print_r( $company_id );
+            // print_r( $pola_kerja );
+            // print_r( $month_year );
+            // print_r( $periode_id );
+
+            $sql1 = "DELETE FROM xin_attendance_time_rekap_borongan
+                             WHERE 1=1
+                             AND  company_id = '" . $company_id . "'
+                             AND  office_id  = '" . $pola_kerja . "'
+                             AND  month_year = '" . $month_year . "'  ";
+
+            // print_r($sql1);
+            // exit();
+
+            $query1   = $this->db->query($sql1);
+
+            if ($company_id != 0) {
+                $cek_karyawan = $this->Employees_model->get_attendance_jenis_gaji_employees_reguler_recap_borongan($pola_kerja, $company_id);
+                $tampilkan_karyawan = $cek_karyawan->result();
+            } else {
+                $Return['error'] = $this->lang->line('xin_record_not_found');
+            }
+            // all employee id
+            $emp_ids = array();
+            foreach ($tampilkan_karyawan as $emp) {
+                $emp_ids[] = $emp->user_id;
+            }
+            $date1 = str_replace('-', '/', $tanggal2);
+            $date2 = date('Y-m-d',strtotime($date1 . "+1 days"));
+            $period = new DatePeriod(
+                new DateTime($tanggal1),
+                new DateInterval('P1D'),
+                new DateTime($date2)
+            );
+           $attendance_dates = [];
+           foreach ($period as $key => $value) {
+               //$value->format('Y-m-d') 
+               $attendance_dates[] = $value->format('Y-m-d');
+           }
+           // get all employee attendance symbol
+           $get_attendance_data = $this->Timesheet_model->cek_multi_status_kehadiran($emp_ids, $attendance_dates);
+        //    var_dump($attendance_dates);return;
+           $attendance_data = array();
+           if (!empty($get_attendance_data)) {
+            # code...
+            foreach ($get_attendance_data as $ad) {
+                if (!isset($attendance_data[$ad->employee_id])) {
+                    $attendance_data[$ad->employee_id] = array();
+                }
+ 
+                $attendance_data[$ad->employee_id][$ad->attendance_date] = $ad->attendance_status_simbol;
+            }
+           }
+
+            // 	print_r( $this->db->last_query() );
+
+
+            // echo "</pre>";
+            // die();
+            // count attendance all employee
+            $symbol = array('L', 'LK', 'H', 'S', 'I', 'C', 'A', 'D', 'O');
+            $get_all_total_attendance = $this->Timesheet_model->hitung_multi_jumlah_status_kehadiran($emp_ids, $tanggal1, $tanggal2, $symbol);
+            $all_total_attendance = array();
+            foreach ($get_all_total_attendance as $gata) {
+                if (!isset($all_total_attendance[$gata->employee_id])) {
+                    $all_total_attendance[$gata->employee_id] = array();
+                }
+
+                $all_total_attendance[$gata->employee_id][$gata->attendance_status_simbol] = $gata->jumlah;
+            }
+            // var_dump($get_all_total_attendance);return;
+
+            // count time late all employee
+            $get_all_late = $this->Timesheet_model->hitung_jumlah_terlambat_kehadiran($emp_ids, $tanggal1, $tanggal2);
+            $all_late = array();
+            foreach ($get_all_late as $gal) {
+                $all_late[$gal->employee_id] = $gal->jumlah;
+            }
+
+            $data = array();
+            foreach ($tampilkan_karyawan as $r) {
+                // var_dump($r);return;
+                foreach ($period as $key => $value) {
+                    //$value->format('Y-m-d') 
+                    $attendance_date = $value->format('Y-m-d');
+                    $t_tgl = (int)$value->format('d');
+                    if (isset($attendance_data[$r->user_id]) && isset($attendance_data[$r->user_id][$attendance_date])) {
+                        $status = $attendance_data[$r->user_id][$attendance_date];
+                        if ($status == 'H') {
+                            if ($r->date_of_joining > $attendance_date) {
+                                $tgl = 'BM';
+                            } else {
+                                $tgl = '.';
+                            }
+                        } else {
+                            if ($r->flag == 0) {
+                                $tgl = $status;
+                            } else if ($r->flag == 1) {
+                                if ($r->date_of_joining > $attendance_date) {
+                                    $tgl = 'BM';
+                                } else if ($status == 'L') {
+                                    $tgl = 'L';
+                                } else if ($status == 'LK') {
+                                    $tgl = 'LK';
+                                } else {
+                                    $tgl = '.';
+                                }
+                            }
+                        }
+                    } else {
+                        $tgl = '?';
+                    }
+
+                    ${"T_{$t_tgl}"} = $tgl;
+                }
+
+
+                 // ==================================================================================================================
+                // Rekap Pengajuan
+                // ==================================================================================================================
+                $get_total_attendance = isset($all_total_attendance[$r->user_id]) ? $all_total_attendance[$r->user_id] : array();
+                $total_attendance = array();
+                foreach ($get_total_attendance as $symbol => $jumlah) {
+                    $total_attendance[$symbol] = $jumlah;
+                }
+
+                // -------------------------------------------------------------------------------------------------------------
+                // LIBUR
+                // -------------------------------------------------------------------------------------------------------------
+                $jumlah_libur = isset($total_attendance['L']) ? $total_attendance['L'] : 0;
+
+                // -------------------------------------------------------------------------------------------------------------
+                // LIBUR KANTOR
+                // -------------------------------------------------------------------------------------------------------------
+                $jumlah_libur_kantor = isset($total_attendance['LK']) ? $total_attendance['LK'] : 0;
+
+                // -------------------------------------------------------------------------------------------------------------
+                // HADIR
+                // -------------------------------------------------------------------------------------------------------------
+                $jumlah_hadir = isset($total_attendance['H']) ? $total_attendance['H'] : 0;
+                if ($r->flag == 0) {
+                    $jumlah_hadir = $jumlah_hadir;
+                } else {
+                    if ($r->date_of_joining > $tanggal1) {
+                        $jumlah_hadir = $interval_date->d - $jumlah_libur - $jumlah_hadir - $jumlah_libur_kantor;
+                    } else {
+                        $jumlah_hadir = $interval_date->d - $jumlah_libur - $jumlah_libur_kantor;
+                    }
+                }
+
+                // -------------------------------------------------------------------------------------------------------------
+                // SAKIT
+                // -------------------------------------------------------------------------------------------------------------
+                $jumlah_sakit = isset($total_attendance['S']) ? $total_attendance['S'] : 0;
+
+                // -------------------------------------------------------------------------------------------------------------
+                // IZIN
+                // -------------------------------------------------------------------------------------------------------------
+                $jumlah_izin = isset($total_attendance['I']) ? $total_attendance['I'] : 0;
+
+                // -------------------------------------------------------------------------------------------------------------
+                // CUTI
+                // -------------------------------------------------------------------------------------------------------------
+                $jumlah_cuti = isset($total_attendance['C']) ? $total_attendance['C'] : 0;
+
+                // -------------------------------------------------------------------------------------------------------------
+                // ALPA
+                // -------------------------------------------------------------------------------------------------------------
+                if ($r->flag == 0) {
+                    $jumlah_alpa = isset($total_attendance['A']) ? $total_attendance['A'] : 0;
+                } else {
+                    $jumlah_alpa = 0;
+                }
+
+                // -------------------------------------------------------------------------------------------------------------
+                // DINAS
+                // -------------------------------------------------------------------------------------------------------------
+                $jumlah_dinas = isset($total_attendance['D']) ? $total_attendance['D'] : 0;
+
+                // -------------------------------------------------------------------------------------------------------------
+                // LEMBUR
+                // -------------------------------------------------------------------------------------------------------------
+                $jumlah_lembur = isset($total_attendance['O']) ? $total_attendance['O'] : 0;
+
+                // -------------------------------------------------------------------------------------------------------------
+                // TERLAMBAT
+                // -------------------------------------------------------------------------------------------------------------\
+                $jumlah_terlambat = isset($all_late[$r->user_id]) ? $all_late[$r->user_id] : 0;
+
+                // -------------------------------------------------------------------------------------------------------------
+                // MENIT
+                // -------------------------------------------------------------------------------------------------------------
+                $jumlah_terlambat_menit = $jumlah_terlambat;
+
+                // -------------------------------------------------------------------------------------------------------------
+                // JAM
+                // -------------------------------------------------------------------------------------------------------------
+                $jumlah_terlambat_jam = round($jumlah_terlambat / 60, 2);
+
+                // -------------------------------------------------------------------------------------------------------------
+                // TOTAL
+                // -------------------------------------------------------------------------------------------------------------
+                $jumlah_total = 0;
+                $jumlah_total = $jumlah_hadir + $jumlah_libur + $jumlah_libur_kantor + $jumlah_sakit + $jumlah_izin + $jumlah_cuti + $jumlah_alpa + $jumlah_dinas + $jumlah_lembur;
+
+                // ==================================================================================================================
+                // Simpan Rekap
+                // ==================================================================================================================
+
+                // $data_payroll = array(
+                // 	'is_payroll' => 1
+                // );
+
+                // $this->Timesheet_model->update_bulan_gaji($data_payroll,$month_year);
+
+                $session_id = $this->session->userdata('user_id');
+                $user_create = $session_id['user_id'];
+
+                $attendance_status = array();
+                for ($i = 1; $i <= 31; $i++) {
+                    $name = "T_{$i}";
+                    $attendance_status["tanggal_{$i}"] = isset($$name) ? $$name : NULL;
+                }    
+                $_data = array(
+
+                    'employee_id'     => $r->user_id,
+                    'wages_type'      => $r->wages_type,
+                    'company_id'      => $r->company_id,
+                    'office_id'          => $r->office_id,
+                    'is_active'       => $r->is_active,
+                    'date_of_joining' => $r->date_of_joining,
+                    'department_id'   => $r->department_id,
+                    'designation_id'  => $r->designation_id,
+                    'flag'            => $r->flag,
+                    'start_date'      => $tanggal1,
+                    'end_date'        => $tanggal2,
+                    'month_year'      => $month_year,
+                    'durasi'          => $interval_date->d + 1,
+
+                    'libur'           => $jumlah_libur,
+                    'libur_kantor'    => $jumlah_libur_kantor,
+                    'aktif'           => $jumlah_hadir,
+                    'sakit'           => $jumlah_sakit,
+                    'izin'            => $jumlah_izin,
+                    'cuti'            => $jumlah_cuti,
+                    'alpa'            => $jumlah_alpa,
+                    'dinas'           => $jumlah_dinas,
+                    'terlambat_menit' => $jumlah_terlambat_menit,
+                    'terlambat_jam'   => $jumlah_terlambat_jam,
+                    'total'           => $jumlah_total,
+
+                    'create_date'     => date('Y-m-d h:i:s'),
+                    'create_by'       => $user_create,
+
+                );
+                $data[] = array_merge($_data, $attendance_status);
+                
+                // echo "<pre>";
+                // print_r( $result );
+                // echo "</pre>";
+                // die();
+                
+            }
+            $result = $this->Timesheet_model->add_employee_attendance_rekap_borongan_reguler($data);
+            if ($result) {
+
+                $Return['result'] = 'Rekap Kehadiran Harian Berhasil Diproses';
+            } else {
+                $Return['error'] = $this->lang->line('xin_error_msg');
+            }
+
+            $this->output($Return);
+            exit;
+        }
+    }
+
+    public function attendance_rekap_borongan_proses_lama()
     {
         $Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
         $Return['csrf_hash'] = $this->security->get_csrf_hash();
@@ -2384,11 +2678,11 @@ class Timesheet extends MY_Controller
             } else {
                 $tanggal1     = '';
                 $tanggal2       = '';
-
                 $start_date    = '';
                 $end_date      = '';
                 $interval_date = '';
             }
+
             $sql1 = "DELETE FROM xin_attendance_time_rekap_borongan
                              WHERE 1=1
                              AND  company_id = '" . $company_id . "'
@@ -2421,89 +2715,21 @@ class Timesheet extends MY_Controller
                 // -------------------------------------------------------------------------------------------------------------
                 // LIBUR
                 // -------------------------------------------------------------------------------------------------------------
-                $cek_libur = $this->Timesheet_model->hitung_jumlah_status_kehadiran($r->user_id, $tanggal1, $tanggal2, 'L');
-                $jumlah_libur = $cek_libur ? $cek_libur[0]->jumlah : 0;
-
-
-                // -------------------------------------------------------------------------------------------------------------
-                // LIBUR KANTOR
-                // -------------------------------------------------------------------------------------------------------------
-
-                $cek_libur_kantor = $this->Timesheet_model->hitung_jumlah_status_kehadiran($r->user_id, $tanggal1, $tanggal2, 'LK');
-                $jumlah_libur_kantor = $cek_libur_kantor ? $cek_libur_kantor[0]->jumlah : 0;
-
-                // -------------------------------------------------------------------------------------------------------------
-                // HADIR
-                // -------------------------------------------------------------------------------------------------------------
-                $cek_hadir = $this->Timesheet_model->hitung_jumlah_status_kehadiran($r->user_id, $tanggal1, $tanggal2, 'H');
-                if ($r->flag == 0) {
-                    $jumlah_hadir = $cek_hadir ? $cek_hadir[0]->jumlah : 0;
-                } else {
-
-                    if ($r->date_of_joining > $tanggal1) {
-                        $jumlah_hadir = $interval_date->d - $jumlah_libur - ($cek_hadir ? $cek_hadir[0]->jumlah : 0) - $jumlah_libur_kantor;
-                    } else {
-                        $jumlah_hadir = $interval_date->d - $jumlah_libur - $jumlah_libur_kantor;
-                    }
-                }
-
-                // -------------------------------------------------------------------------------------------------------------
-                // SAKIT
-                // -------------------------------------------------------------------------------------------------------------
-                $cek_sakit = $this->Timesheet_model->hitung_jumlah_status_kehadiran($r->user_id, $tanggal1, $tanggal2, 'S');
-                $jumlah_sakit = $cek_sakit ? $cek_sakit[0]->jumlah : 0;
-
-                // -------------------------------------------------------------------------------------------------------------
-                // IZIN
-                // -------------------------------------------------------------------------------------------------------------
-                $cek_izin = $this->Timesheet_model->hitung_jumlah_status_kehadiran($r->user_id, $tanggal1, $tanggal2, 'I');
-                $jumlah_izin = $cek_izin ? $cek_izin[0]->jumlah : 0;
-
-                // -------------------------------------------------------------------------------------------------------------
-                // CUTI
-                // -------------------------------------------------------------------------------------------------------------
-                $cek_cuti = $this->Timesheet_model->hitung_jumlah_status_kehadiran($r->user_id, $tanggal1, $tanggal2, 'C');
-                $jumlah_cuti = $cek_cuti ? $cek_cuti[0]->jumlah : 0;
-
-                // -------------------------------------------------------------------------------------------------------------
-                // ALPA
-                // -------------------------------------------------------------------------------------------------------------
-
-                $cek_alpa = $this->Timesheet_model->hitung_jumlah_status_kehadiran($r->user_id, $tanggal1, $tanggal2, 'A');
-
-                if ($r->flag == 0) {
-                    $jumlah_alpa = $cek_alpa ? $cek_alpa[0]->jumlah : 0;
-                } else {
-                    $jumlah_alpa = 0;
-                }
-
-                // -------------------------------------------------------------------------------------------------------------
-                // DINAS
-                // -------------------------------------------------------------------------------------------------------------
-                $cek_dinas = $this->Timesheet_model->hitung_jumlah_status_kehadiran($r->user_id, $tanggal1, $tanggal2, 'D');
-                $jumlah_dinas = $cek_dinas ? $cek_dinas[0]->jumlah : 0;
-
-                // -------------------------------------------------------------------------------------------------------------
-                // LEMBUR
-                // -------------------------------------------------------------------------------------------------------------
-                $cek_lembur = $this->Timesheet_model->hitung_jumlah_status_kehadiran($r->user_id, $tanggal1, $tanggal2, 'O');
-                $jumlah_lembur = $cek_lembur ? $cek_lembur[0]->jumlah : 0;
-
-                // -------------------------------------------------------------------------------------------------------------
-                // TERLAMBAT
-                // -------------------------------------------------------------------------------------------------------------
-                $cek_terlambat = $this->Timesheet_model->hitung_jumlah_terlambat_kehadiran($r->user_id, $tanggal1, $tanggal2);
-                $jumlah_terlambat = $cek_terlambat ? $cek_terlambat[0]->jumlah : 0;
-
-                // -------------------------------------------------------------------------------------------------------------
-                // MENIT
-                // -------------------------------------------------------------------------------------------------------------
-                $jumlah_terlambat_menit = $jumlah_terlambat;
-                // -------------------------------------------------------------------------------------------------------------
-                // JAM
-                // -------------------------------------------------------------------------------------------------------------
+                $rekap_absensi = $this->Timesheet_model->hitung_rekap_kehadiran($r->user_id, $tanggal1, $tanggal2);
+                $jumlah_libur = $rekap_absensi ? $rekap_absensi->jumlah_libur : 0;
+                $jumlah_libur_kantor = $rekap_absensi ? $rekap_absensi->jumlah_libur_kantor : 0;
+                $jumlah_hadir = $rekap_absensi ? $rekap_absensi->jumlah_hadir : 0;
+                $jumlah_sakit = $rekap_absensi ? $rekap_absensi->jumlah_sakit : 0;
+                $jumlah_izin = $rekap_absensi ? $rekap_absensi->jumlah_izin : 0;
+                $jumlah_alpa = $rekap_absensi ? $rekap_absensi->jumlah_alpa : 0;
+                $jumlah_lembur = $rekap_absensi ? $rekap_absensi->jumlah_lembur : 0;
+                $jumlah_dinas = $rekap_absensi ? $rekap_absensi->jumlah_dinas : 0;
+                $jumlah_cuti = $rekap_absensi ? $rekap_absensi->jumlah_cuti : 0;
+                // echo $r->user_id;
+                $jumlah_terlambat = $rekap_absensi ? $rekap_absensi->jumlah_terlambat : 0;
+               
                 $jumlah_terlambat_jam = round($jumlah_terlambat / 60, 2);
-
+                $jumlah_terlambat_menit = $jumlah_terlambat;
                 // -------------------------------------------------------------------------------------------------------------
                 // TOTAL
                 // -------------------------------------------------------------------------------------------------------------

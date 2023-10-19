@@ -516,6 +516,8 @@ class Permission extends MY_Controller {
 					'leave_type_id'    => $this->input->post('leave_type'),
 					'from_date'        => $this->input->post('start_date'),
 					'to_date'          => $this->input->post('end_date'),
+					'to_date'          => $this->input->post('end_date'),
+					'reason'          => $this->input->post('reason'),
 					'applied_on'       => date('Y-m-d h:i'),
 					'reason'           => $qt_reason,		
 					'leave_attachment' => $fname,

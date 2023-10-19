@@ -27,18 +27,96 @@ class GetAbsensi extends MY_Controller
         $this->load->model("Company_model");
     }
 
-    function getAttendanceRegular() {
+    function getAttendanceRegularAkui() {
         // echo date('H:i:s');
         // $cek_hadir = $this->Timesheet_model->hitung_jumlah_status_kehadiran('733', '2023-09-16',  '2023-09-30', 'H');
         // var_dump($cek_hadir);
         // return;
-        $companies = $this->db->get("xin_companies")->result();
+        // $companies = $this->db->get("xin_companies")->result();
         $jenis_gaji = $this->db->get("xin_payroll_jenis")->result();
 
         // var_dump($this->db->affected_rows());return;
-        foreach ($companies as $key => $value) {
-            $company_id = $value->company_id;
-            // $company_id = 2;
+        // foreach ($companies as $key => $value) {
+        //     $company_id = $value->company_id;
+            $company_id = 1;
+            foreach ($jenis_gaji as $key => $gaji) {
+                $gaji_id = $gaji->jenis_gaji_id;
+                // $gaji_id = 3;
+                $startDate = date('Y-m-01');
+                $endDate = date('Y-m-d');
+                $lenghDay = (int) date('d');
+                $attendance_date = date('Y-m-01');
+                for ($i=1; $i < $lenghDay; $i++) { 
+                    $getAttendance = $this->attendance_reguler_list($gaji_id,$company_id,$attendance_date);
+                    // var_dump($getAttendance);
+                    // return;
+                    $attendance_date = new DateTime($attendance_date);
+                    $attendance_date->modify('+1 day');
+                    $attendance_date = $attendance_date->format('Y-m-d');
+                }
+            }
+        // }
+        echo $i.PHP_EOL;
+        echo 'AKUI ----';
+        echo 'Sukses  -- ';
+        echo date('H:i:s');
+    }
+    function getAttendanceRegularObi() {
+        
+        // echo date('H:i:s');
+        // $cek_hadir = $this->Timesheet_model->hitung_jumlah_status_kehadiran('733', '2023-09-16',  '2023-09-30', 'H');
+        // var_dump($cek_hadir);
+        // return;
+        // $companies = $this->db->get("xin_companies")->result();
+        $jenis_gaji = $this->db->get("xin_payroll_jenis")->result();
+
+        // var_dump($this->db->affected_rows());return;
+        // foreach ($companies as $key => $value) {
+        //     $company_id = $value->company_id;
+            $company_id = 2;
+            // foreach ($jenis_gaji as $key => $gaji) {
+            //     $gaji_id = $gaji->jenis_gaji_id;
+                // $gaji_id = 2;
+                $startDate = date('Y-m-01');
+                $endDate = date('Y-m-d');
+                // $lenghDay = (int) date('d');
+                $lenghDay = 1;
+                $attendance_date = date('Y-m-01');
+                if ($lenghDay ==1) {
+                    $lenghDay = (int) date('d', strtotime('last day of previous month'));
+                    $attendance_date = date('Y-m-d', strtotime('first day of last month'));
+                    // return;
+                }
+                echo $lenghDay.PHP_EOL;
+                for ($i=1; $i < $lenghDay; $i++) { 
+                    echo $attendance_date.PHP_EOL;
+                    // $getAttendance = $this->attendance_reguler_list($gaji_id,$company_id,$attendance_date);
+                    // // var_dump($getAttendance);
+                    // // return;
+                    $attendance_date = new DateTime($attendance_date);
+                    $attendance_date->modify('+1 day');
+                    $attendance_date = $attendance_date->format('Y-m-d');
+                }
+            // }
+        // }
+        echo $i.PHP_EOL;
+        echo 'OBI ----';
+        echo 'Sukses  -- ';
+        echo date('H:i:s');
+    }
+
+    function getAttendanceRegularWaj() {
+        // echo date('H:i:s');
+        // $cek_hadir = $this->Timesheet_model->hitung_jumlah_status_kehadiran('733', '2023-09-16',  '2023-09-30', 'H');
+        // var_dump($cek_hadir);
+        // return;
+        // $companies = $this->db->get("xin_companies")->result();
+        $jenis_gaji = $this->db->get("xin_payroll_jenis")->result();
+
+        // var_dump($this->db->affected_rows());return;
+        // foreach ($companies as $key => $value) {
+        //     $company_id = $value->company_id;
+            $company_id = 2;
             foreach ($jenis_gaji as $key => $gaji) {
                 $gaji_id = $gaji->jenis_gaji_id;
                 // $gaji_id = 2;
@@ -55,9 +133,9 @@ class GetAbsensi extends MY_Controller
                     $attendance_date = $attendance_date->format('Y-m-d');
                 }
             }
-        }
+        // }
         echo $i.PHP_EOL;
-        echo '----';
+        echo 'WAJ ----';
         echo 'Sukses  -- ';
         echo date('H:i:s');
     }
@@ -67,12 +145,13 @@ class GetAbsensi extends MY_Controller
     // =============================================================================
     // 0910 TARIK ABSENSI REGULER
     // =============================================================================
-
+    public function getAbsen() {
+        $getAttendance = $this->attendance_reguler_list(1,1,'2023-09-01');
+    }
 
 
     // daily attendance list > timesheet
-   
-    public function attendance_reguler_list($jenis_gaji,$company_id,$attendance_date)
+    public function attendance_reguler_list($jenis_gaji =1,$company_id=1,$attendance_date ='2023-09-01')
     {
         // $attendance_date = $this->input->get("attendance_date");
 
@@ -83,11 +162,72 @@ class GetAbsensi extends MY_Controller
         AND company_id ='" . $company_id . "' AND  attendance_date = '" . $attendance_date . "' AND  jenis_gaji = '" . $jenis_gaji . "'  ";
 
         $query1   = $this->db->query($sql1);
+        $sql1 = "DELETE FROM xin_attendance_time WHERE 1=1
+        AND company_id ='" . $company_id . "' AND  attendance_date = '" . $attendance_date . "' AND  jenis_gaji = '" . $jenis_gaji . "'  ";
+
+        $query1   = $this->db->query($sql1);
 
         $data = array();
 
         $no = 1;
         $dataInsert = [];
+        $allAttendanceIn = [];
+        $all_attendance_in = $this->Timesheet_model->attendance_first_in_check_by_date($attendance_date);
+        // print_r($this->db->last_query());
+        // var_dump($all_attendance_in);
+        foreach ($all_attendance_in as $key => $value) {
+            $allAttendanceIn[$value->pin] = $value->clock_in;
+        }
+        $allAttendanceOut = [];
+       
+        $all_attendance_out= $this->Timesheet_model->attendance_first_out_check_by_date($attendance_date);
+        foreach ($all_attendance_out as $key => $value) {
+            $allAttendanceOut[$value->pin] = $value->clock_out;
+        }
+        // CEK HARI LIBUR
+        $check_hari_libur = $this->check_hari_libur($company_id,$attendance_date);
+        $allLiburKantor = [];
+        $check_hari_libur_kantor = $this->check_hari_libur_kantor($attendance_date);
+        foreach ($check_hari_libur_kantor as $key => $value) {
+            $allLiburKantor[$value->employee_id]['status'] = $value->type_name;
+            $allLiburKantor[$value->employee_id]['simbol'] = $value->type_code;
+            $allLiburKantor[$value->employee_id]['keterangan'] = "Jenis Libur : " . $value->reason;
+        }
+        $allCutiKaryawan = [];
+        $check_cuti_karyawan = $this->check_cuti_karyawan($attendance_date);
+        foreach ($check_cuti_karyawan as $key => $value) {
+            $allCutiKaryawan[$value->employee_id]['status'] = $this->lang->line('xin_on_leave');
+            $allCutiKaryawan[$value->employee_id]['simbol'] = $this->lang->line('xin_on_leave_simbol');
+            $allCutiKaryawan[$value->employee_id]['keterangan'] = "Cuti : " . $value->reason;
+        }
+        $allDinasKaryawan = [];
+        $check_dinas_karyawan = $this->check_dinas_karyawan($attendance_date);
+        foreach ($check_dinas_karyawan as $key => $value) {
+            $allDinasKaryawan[$value->employee_id]['status'] = $this->lang->line('xin_travels');
+            $allDinasKaryawan[$value->employee_id]['simbol'] = $this->lang->line('xin_travels_simbol');
+            $allDinasKaryawan[$value->employee_id]['keterangan'] = "Dinas : " . $value->reason;
+        }
+        $allIzinKaryawan = [];
+        $check_izin_karyawan = $this->check_izin_karyawan($attendance_date);
+        foreach ($check_izin_karyawan as $key => $value) {
+            $allIzinKaryawan[$value->employee_id]['status'] = $this->lang->line('xin_on_izin');
+            $allIzinKaryawan[$value->employee_id]['simbol'] = $this->lang->line('xin_on_izin_simbol');
+            $allIzinKaryawan[$value->employee_id]['keterangan'] = "Izin : " . $value->reason;
+        }
+        $allSakitKaryawan = [];
+        $check_sakit_karyawan = $this->check_sakit_karyawan($attendance_date);
+        foreach ($check_sakit_karyawan as $key => $value) {
+            $allSakitKaryawan[$value->employee_id]['status'] = $this->lang->line('xin_on_sick');
+            $allSakitKaryawan[$value->employee_id]['simbol'] = $this->lang->line('xin_on_sick_simbol');
+            $allSakitKaryawan[$value->employee_id]['keterangan'] = "Sakit : " . $value->reason;
+        }
+        $allLemburKaryawan = [];
+        $check_lembur_karyawan = $this->check_lembur_karyawan($attendance_date);
+        foreach ($check_lembur_karyawan as $key => $value) {
+            $allLemburKaryawan[$value->employee_id]['status'] = $this->lang->line('xin_overtime');
+            $allLemburKaryawan[$value->employee_id]['simbol'] = $this->lang->line('xin_overtime_simbol');
+            $allLemburKaryawan[$value->employee_id]['keterangan'] = "Lembur : " . $value->description;
+        }
         
         foreach ($employee->result() as $r) {   
             $comp_name = $r->company_name;
@@ -114,8 +254,8 @@ class GetAbsensi extends MY_Controller
             // =========================================================================================================
             // CEK HARI LIBUR
             // =========================================================================================================
-            $check_hari_libur = $this->check_hari_libur($r->company_id,$attendance_date);
-            $attendance_in = $this->Timesheet_model->attendance_first_in_new($r->employee_pin, $attendance_date);
+            // $attendance_in = $this->Timesheet_model->attendance_first_in_new($r->employee_pin, $attendance_date);
+            $attendance_in = isset($allAttendanceIn[$r->employee_pin]) ? $allAttendanceIn[$r->employee_pin] : '';
             if ($r->date_of_joining > $attendance_date) {
                 $attendance_jadwal = 'Belum Masuk';
                 $attendance_status = 'Belum Masuk';
@@ -153,52 +293,57 @@ class GetAbsensi extends MY_Controller
                     $attendance_jadwal = $in_time . ' s/d ' . $out_time;
 
                     //cek libur kantor
-                    $check_hari_libur_kantor = $this->check_hari_libur_kantor($r->user_id,$attendance_date);
-                    if ($check_hari_libur['status']== true && empty($attendance_in)) {
+                    // $check_hari_libur_kantor = $this->check_hari_libur_kantor($r->user_id,$attendance_date);
+                    $check_hari_libur_kantor =  isset($allLiburKantor[$r->user_id]) ? $allLiburKantor[$r->user_id] : null;
+                    if ($check_hari_libur_kantor != null && empty($attendance_in)) {
                         # code...
-                        $attendance_status = $check_hari_libur_kantor['attendance_status'] == false ? 'Libur' :$check_hari_libur_kantor['attendance_status'];
-                        $attendance_simbol = $check_hari_libur_kantor['attendance_simbol'] == false ? 'L' :$check_hari_libur_kantor['attendance_simbol'];
-                        $attendance_keterangan = $check_hari_libur_kantor['attendance_keterangan'];
+                        $attendance_status = $check_hari_libur_kantor['status'] == false ? 'Libur' :$check_hari_libur_kantor['status'];
+                        $attendance_simbol = $check_hari_libur_kantor['simbol'] == false ? 'L' :$check_hari_libur_kantor['simbol'];
+                        $attendance_keterangan = $check_hari_libur_kantor['keterangan'];
                         $flag = 'L';
                         // var_dump($check_hari_libur_kantor);return;
                     }else{
                         //cek cuti
-                        $check_cuti = $this->check_cuti_karyawan($r->user_id,$attendance_date);
+                        $check_cuti =  isset($allCutiKaryawan[$r->user_id]) ? $allCutiKaryawan[$r->user_id] : null;
                         
-                        if ($check_cuti['status'] == true) {
-                            $attendance_status = $check_cuti['attendance_status'];
-                            $attendance_simbol = $check_cuti['attendance_simbol'];
-                            $attendance_keterangan = $check_cuti['attendance_keterangan'];
+                        if ($check_cuti != null) {
+                            $attendance_status = $check_cuti['status'];
+                            $attendance_simbol = $check_cuti['simbol'];
+                            $attendance_keterangan = $check_cuti['keterangan'];
                         }else{
                              // cek dinas
-                            $check_dinas = $this->check_dinas_karyawan($r->user_id,$attendance_date);
-                            if ($check_dinas['status'] == true) {
-                                $attendance_status = $check_dinas['attendance_status'];
-                                $attendance_simbol = $check_dinas['attendance_simbol'];
-                                $attendance_keterangan = $check_dinas['attendance_keterangan'];
+                            $check_dinas =  isset($allDinasKaryawan[$r->user_id]) ? $allDinasKaryawan[$r->user_id] : null;
+                        
+                            if ($check_dinas != null) {
+                                $attendance_status = $check_cuti['status'];
+                                $attendance_simbol = $check_cuti['simbol'];
+                                $attendance_keterangan = $check_cuti['keterangan'];
                             }else{
-                                // cek sakit / izin
-                                $check_sakit_izin = $this->check_sakit_izin_karyawan($r->user_id,$attendance_date);
-                                // get data check in 
 
-                                $attendance_in = $this->Timesheet_model->attendance_first_in_new($r->employee_pin, $attendance_date);
-                                // var_dump($r->employee_pin);
-                                // var_dump($attendance_in);
-                                // return;
-                                // check clock out time
-                                // get data from adms -> view absen keluar
-                                $attendance_out = $this->Timesheet_model->attendance_first_out_new($r->employee_pin, $attendance_date);
-                                //cek apakah dia sudah checlok pulang
-                                if ($check_sakit_izin['status'] == true) {
-                                    $attendance_status = $check_sakit_izin['attendance_status'];
-                                    $attendance_simbol = $check_sakit_izin['attendance_simbol'];
-                                    $attendance_keterangan = $check_sakit_izin['attendance_keterangan'];
+                                $attendance_out = isset($allAttendanceOut[$r->employee_pin]) ? $allAttendanceOut[$r->employee_pin] : '';
+                                // cek sakit / izin
+                                $check_sakit =  isset($allSakitKaryawan[$r->user_id]) ? $allSakitKaryawan[$r->user_id] : null;
+                                $check_izin =  isset($allIzinKaryawan[$r->user_id]) ? $allIzinKaryawan[$r->user_id] : null;
+                        
+                                if ($check_izin != null or $check_sakit != null) {
+                                    if ($check_izin !=null) {
+                                        # code...
+                                        $attendance_status = $check_izin['status'];
+                                        $attendance_simbol = $check_izin['simbol'];
+                                        $attendance_keterangan = $check_izin['keterangan'];
+                                    }
+                                    if ($check_sakit !=null) {
+                                        $attendance_status = $check_sakit['status'];
+                                        $attendance_simbol = $check_sakit['simbol'];
+                                        $attendance_keterangan = $check_sakit['keterangan'];
+                                        # code...
+                                    }
                                     // cek apakah dia masuk/checklock
                                     if (!empty($attendance_in)) {
-                                        $clock_in =$attendance_in[0]->clock_in;
+                                        $clock_in =$attendance_in;
                                         
                                         if (!empty($attendance_out)) {
-                                            $clock_out = $attendance_out[0]->clock_out;
+                                            $clock_out = $attendance_out;
                                             $total_work_cin  =  new DateTime($clock_in);
                                             $total_work_cout =  new DateTime($clock_out);
 
@@ -221,11 +366,11 @@ class GetAbsensi extends MY_Controller
                                     if (empty($attendance_in) || empty($attendance_out)) {
                                         # code...
                                         if (!empty($attendance_in)) {
-                                            $clock_in = $attendance_in[0]->clock_in;
+                                            $clock_in = $attendance_in;
                                             $time_late = $this->check_terlambat($attendance_date,$in_time,$clock_in);
                                         }
                                         if (!empty($attendance_out)) {
-                                            $clock_out = $attendance_out[0]->clock_out;
+                                            $clock_out = $attendance_out;
                                             $early_leaving = $this->check_pulang_cepat($attendance_date,$out_time,$clock_out);
                                             $overtime = $this->check_over_time_checklock($attendance_date,$out_time,$clock_out);
                                         }
@@ -233,8 +378,8 @@ class GetAbsensi extends MY_Controller
                                         $attendance_simbol         = $this->lang->line('xin_absent_simbol');
                                         $attendance_keterangan = $this->lang->line('xin_absent_ket');
                                     }else{
-                                        $clock_in = $attendance_in[0]->clock_in;
-                                        $clock_out = $attendance_out[0]->clock_out;
+                                        $clock_in = $attendance_in;
+                                        $clock_out = $attendance_out;
                                         // var_dump($clock_in);return;
                                         $total_work_cin  =  new DateTime($clock_in);
                                         $total_work_cout =  new DateTime($clock_out);
@@ -247,13 +392,14 @@ class GetAbsensi extends MY_Controller
                                         $time_late = $this->check_terlambat($attendance_date,$in_time,$clock_in);
                                         $early_leaving = $this->check_pulang_cepat($attendance_date,$out_time,$clock_out);
                                         $overtime = $this->check_over_time_checklock($attendance_date,$out_time,$clock_out);
-                                        $check_lembur = $this->check_lembur($r->user_id,$attendance_date);
-                                        if ($check_lembur['status'] == true) {
-                                            $attendance_status = $check_lembur['attendance_status'];
-                                            $attendance_simbol = $check_lembur['attendance_simbol'];
-                                            $attendance_keterangan = $check_lembur['attendance_keterangan'];
+                                        $check_lembur =  isset($allLemburKaryawan[$r->user_id]) ? $allLemburKaryawan[$r->user_id] : null;
+                        
+                                        if ($check_lembur != null) { 
+                                            $attendance_status = $check_lembur['status'];
+                                            $attendance_simbol = $check_lembur['simbol'];
+                                            $attendance_keterangan = $check_lembur['keterangan'];
                                         }else{
-                                            $attendance_status     = $attendance_in[0]->attendance_status;
+                                            $attendance_status     = 'Hadir';
                                             $attendance_simbol     = 'H';
                                             $attendance_keterangan = 'Masuk';
                                         }
@@ -702,89 +848,63 @@ class GetAbsensi extends MY_Controller
 
     }
     // cek hari libur kantor per karyawan
-    public function check_hari_libur_kantor($employee_id,$attendance_date){
-        $sql_check_libur = "SELECT * FROM view_karyawan_libur WHERE employee_id ='" . $employee_id . "' AND from_date <= '" . $attendance_date . "' AND to_date >= '" . $attendance_date . "' ";
+    public function check_hari_libur_kantor($attendance_date){
+        $sql_check_libur = "SELECT * FROM view_karyawan_libur WHERE from_date <= '" . $attendance_date . "' AND to_date >= '" . $attendance_date . "' ";
 
-        $check_libur = $this->db->query($sql_check_libur)->row();
-       
-        if (!empty($check_libur)) {
-            $output['status'] = true;
-            $output['attendance_status']          = $check_libur->type_name;
-            $output['attendance_simbol']    = $check_libur->type_code;
-            $output['attendance_keterangan']   = "Jenis Libur : " . $check_libur->reason;
-        }else{
-            $output['status'] = false;
-        }
-        return $output;
+        $check_libur = $this->db->query($sql_check_libur)->result();
+
+        return $check_libur;
     }
+    // public function check_hari_libur_kantor($employee_id,$attendance_date){
+    //     $sql_check_libur = "SELECT * FROM view_karyawan_libur WHERE employee_id ='" . $employee_id . "' AND from_date <= '" . $attendance_date . "' AND to_date >= '" . $attendance_date . "' ";
+
+    //     $check_libur = $this->db->query($sql_check_libur)->row();
+       
+    //     if (!empty($check_libur)) {
+    //         $output['status'] = true;
+    //         $output['attendance_status']          = $check_libur->type_name;
+    //         $output['attendance_simbol']    = $check_libur->type_code;
+    //         $output['attendance_keterangan']   = "Jenis Libur : " . $check_libur->reason;
+    //     }else{
+    //         $output['status'] = false;
+    //     }
+    //     return $output;
+    // }
     //  cek cuti karyawan
-    public function check_cuti_karyawan($employee_id,$attendance_date){
-        $sql_check_cuti = "SELECT * FROM xin_leave_applications WHERE employee_id ='" . $employee_id . "' AND from_date <= '" . $attendance_date . "' AND to_date >= '" . $attendance_date . "' ";
+    public function check_cuti_karyawan($attendance_date){
+        $sql_check_cuti = "SELECT * FROM xin_leave_applications WHERE from_date <= '" . $attendance_date . "' AND to_date >= '" . $attendance_date . "' ";
     
-        $row_check_cuti = $this->db->query($sql_check_cuti)->row();
-        if (!empty($row_check_cuti)) {
-            $output['status'] = true;
-            $output['attendance_status']    =$this->lang->line('xin_on_leave');
-            $output['attendance_simbol']    = $this->lang->line('xin_on_leave_simbol');
-            $output['attendance_keterangan']   = "Cuti : " . $row_check_cuti->reason;
-        }else{
-            $output['status'] = false;
-        }
-        return $output;
+        $row_check_cuti = $this->db->query($sql_check_cuti)->result();
+      
+        return $row_check_cuti;
     }
     //  cek dinas karyawan
-    public function check_dinas_karyawan($employee_id,$attendance_date){
-        $sql_check_dinas = "SELECT * FROM xin_employee_travels WHERE employee_id ='" . $employee_id . "' AND start_date <= '" . $attendance_date . "' AND end_date >= '" . $attendance_date . "' ";
-        $row_check_dinas = $this->db->query($sql_check_dinas)->row();
-        if (!empty($row_check_dinas)) {
-            $output['status'] = true;
-            $output['attendance_status']    =$this->lang->line('xin_travels');
-            $output['attendance_simbol']    = $this->lang->line('xin_travels_simbol');
-            $output['attendance_keterangan']   = "Dinas : " . $row_check_dinas->description;
-        }else{
-            $output['status'] = false;
-        }
-        return $output;
+    public function check_dinas_karyawan($attendance_date){
+        $sql_check_dinas = "SELECT * FROM xin_employee_travels WHERE start_date <= '" . $attendance_date . "' AND end_date >= '" . $attendance_date . "' ";
+        $row_check_dinas = $this->db->query($sql_check_dinas)->result();
+       
+        return $row_check_dinas;
        
     }
     // check sakit / izin
-    public function check_sakit_izin_karyawan($employee_id,$attendance_date){
-        $sql_check_sakit = "SELECT * FROM xin_sick_applications WHERE employee_id ='" . $employee_id. "' AND from_date <= '" . $attendance_date . "' AND to_date >= '" . $attendance_date . "' ";
-        $sql_check_izin = "SELECT * FROM xin_izin_applications WHERE employee_id ='" . $employee_id . "' AND from_date <= '" . $attendance_date . "' AND to_date >= '" . $attendance_date . "' ";
-        $row_check_sakit = $this->db->query($sql_check_sakit)->row();
-        $row_check_izin = $this->db->query($sql_check_izin)->row();
-        // check sakit
-        if (!empty($row_check_sakit)) {
-            $output['status'] = true;
-            $output['attendance_status']    =$this->lang->line('xin_on_sick');
-            $output['attendance_simbol']    = $this->lang->line('xin_on_sick_simbol');
-            $output['attendance_keterangan']   = "Sakit : " . $row_check_sakit->reason;
-        }
-        // check izin
-        elseif (!empty($row_check_izin)) {
-            $output['status'] = true;
-            $output['attendance_status']    =$this->lang->line('xin_on_izin');
-            $output['attendance_simbol']    = $this->lang->line('xin_on_izin_simbol');
-            $output['attendance_keterangan']   = "Izin : " . $row_check_izin->reason;
-        }else{
-            $output['status'] = false;
-        }
-        return $output;
+    public function check_izin_karyawan($attendance_date){
+        $sql_check_izin = "SELECT * FROM xin_izin_applications WHERE from_date <= '" . $attendance_date . "' AND to_date >= '" . $attendance_date . "' ";
+        $row_check_izin = $this->db->query($sql_check_izin)->result();
+        return $row_check_izin;
     }
+    public function check_sakit_karyawan($attendance_date){
+        $row_check_sakit = "SELECT * FROM xin_sick_applications WHERE from_date <= '" . $attendance_date . "' AND to_date >= '" . $attendance_date . "' ";
+        $row_check_sakit = $this->db->query($row_check_sakit)->result();
+        return $row_check_sakit;
+    }
+
     //cek lembur
-    public function check_lembur($employee_id,$attendance_date){
-        $sql_check_lembur = "SELECT * FROM xin_salary_overtime WHERE employee_id ='" . $employee_id . "' AND overtime_date = '" . $attendance_date . "' ";
+    public function check_lembur_karyawan($attendance_date){
+        $sql_check_lembur = "SELECT * FROM xin_salary_overtime WHERE overtime_date = '" . $attendance_date . "' ";
         
-        $row_check_lembur = $this->db->query($sql_check_lembur)->row();
-        if (!empty($row_check_lembur)) {
-            $output['status'] = true;
-            $output['attendance_status']    =$this->lang->line('xin_overtime');
-            $output['attendance_simbol']    = $this->lang->line('xin_overtime_simbol');
-            $output['attendance_keterangan']   = "Lembur : " . $row_check_lembur->description;
-        }else{
-            $output['status'] = false;
-        }
-        return $output;
+        $row_check_lembur = $this->db->query($sql_check_lembur)->result();
+        
+        return $row_check_lembur;
     }
     // cek terlambat
     public function check_terlambat($attendance_date,$office_in,$clock_in){

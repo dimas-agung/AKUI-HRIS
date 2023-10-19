@@ -135,8 +135,8 @@ if(isset($_GET['jd']) && isset($_GET['employee_id']) && $_GET['data']=='payment'
 					// 1: BPJS TK
 					// ============================================================================================================
 					
-						$count_bpjs_tk = $this->Employees_model->count_employee_bpjs_tk($employee_user_id,$end_date);
-						$bpjs_tk = $this->Employees_model->set_employee_bpjs_tk($employee_user_id,$end_date);
+						$count_bpjs_tk = $this->Employees_model->count_employee_bpjs_tk($employee_user_id,$start_date,$end_date);
+						$bpjs_tk = $this->Employees_model->set_employee_bpjs_tk($employee_user_id,$start_date,$end_date);
 						$bpjs_tk_amount = 0;
 						if($count_bpjs_tk > 0) {
 							foreach($bpjs_tk->result() as $sl_salary_bpjs_tk){							
@@ -150,8 +150,8 @@ if(isset($_GET['jd']) && isset($_GET['employee_id']) && $_GET['data']=='payment'
 					// 2: BPJS KES
 					// ============================================================================================================
 					
-						$count_bpjs_kes = $this->Employees_model->count_employee_bpjs_kes($employee_user_id,$end_date);
-						$bpjs_kes = $this->Employees_model->set_employee_bpjs_kes($employee_user_id,$end_date);
+						$count_bpjs_kes = $this->Employees_model->count_employee_bpjs_kes($employee_user_id,$start_date,$end_date);
+						$bpjs_kes = $this->Employees_model->set_employee_bpjs_kes($employee_user_id,$start_date,$end_date);
 						$bpjs_kes_amount = 0;
 						if($count_bpjs_kes > 0) {
 							foreach($bpjs_kes->result() as $sl_salary_bpjs_kes){
@@ -201,15 +201,17 @@ if(isset($_GET['jd']) && isset($_GET['employee_id']) && $_GET['data']=='payment'
 					// 3: biaya
 					// ============================================================================================================
 
-						$cek_biaya      = $this->Timesheet_model->tampil_produktifitas_rekap($employee_user_id,$start_date,$end_date);
-						if(!is_null($cek_biaya)){
+					$cek_biaya      = $this->Timesheet_model->get_produktifitas_rekap($employee_nip, $start_date, $end_date);
+						if (!is_null($cek_biaya)) {
 							$jum_biaya   = $cek_biaya[0]->rekap_amount;
 							$jum_gram    = $cek_biaya[0]->rekap_gram;
 							$jum_day     = $cek_biaya[0]->rekap_day;
+							$jum_insentif     = $cek_biaya[0]->rekap_insentif;
 						} else {
 							$jum_biaya   = 0;
 							$jum_gram    = 0;
 							$jum_day    = 0;
+							$jum_insentif    = 0;
 						}
 
 						// $cek_biaya      = $this->Timesheet_model->hitung_jumlah_produktifitas_biaya($employee_nip,$start_date,$end_date);
@@ -248,6 +250,7 @@ if(isset($_GET['jd']) && isset($_GET['employee_id']) && $_GET['data']=='payment'
 						$jumlah_gram = $jum_gram;
 
 						$jumlah_biaya = $jum_biaya;
+						$jumlah_insentif = $jum_insentif;
 										
 
 			// ====================================================================================================================
@@ -268,7 +271,7 @@ if(isset($_GET['jd']) && isset($_GET['employee_id']) && $_GET['data']=='payment'
 
           		}
 
-				$total_net_salary = ($commissions_amount+$commissions_help_amount+$jumlah_biaya)-($minus_amount+$bpjs_tk_amount+$pot_bpjs_kes_amount);			
+				$total_net_salary = ($commissions_amount+$commissions_help_amount+$jumlah_biaya+$jumlah_insentif)-($minus_amount+$bpjs_tk_amount+$pot_bpjs_kes_amount);			
 				
 									
 			
@@ -309,6 +312,7 @@ if(isset($_GET['jd']) && isset($_GET['employee_id']) && $_GET['data']=='payment'
 			<input type="hidden" value="<?php echo $jumlah_biaya;?>"                          name="jumlah_biaya">
 			<input type="hidden" value="<?php echo $commissions_amount;?>"                    name="commissions_amount">
 			<input type="hidden" value="<?php echo $commissions_help_amount;?>"               name="commissions_help_amount">
+			<input type="hidden" value="<?php echo $jumlah_insentif;?>"               name="jumlah_insentif">
 
 			<input type="hidden" value="<?php echo $pot_bpjs_kes_amount;?>"                   name="bpjs_kes_amount">
 			<input type="hidden" value="<?php echo $bpjs_tk_amount;?>"                        name="bpjs_tk_amount">
@@ -370,6 +374,10 @@ if(isset($_GET['jd']) && isset($_GET['employee_id']) && $_GET['data']=='payment'
 		                     <tr>
 		                      	<td><strong> Total Diperbantukan </strong></td> 
 		                        <td>: <span class="pull-right"><?php echo number_format($commissions_help_amount, 0, ',', '.') ;?></span></td>
+		                    </tr>
+		                     <tr>
+		                      	<td><strong> Total Insentif </strong></td> 
+		                        <td>: <span class="pull-right"><?php echo number_format($jumlah_insentif, 0, ',', '.') ;?></span></td>
 		                    </tr>
 
 		                    <tr>
@@ -498,7 +506,8 @@ if(isset($_GET['jd']) && isset($_GET['employee_id']) && $_GET['data']=='payment'
 		                          {"name": "kolom_22", "className": "text-center"},
 		                          {"name": "kolom_23", "className": "text-center"},
 		                          {"name": "kolom_24", "className": "text-left"},
-		                          {"name": "kolom_25", "className": "text-left"}         
+		                          {"name": "kolom_25", "className": "text-left"},         
+		                          {"name": "kolom_26", "className": "text-left"}         
 
 		                      ],
 						   "language": {
