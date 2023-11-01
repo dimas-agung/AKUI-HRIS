@@ -111,6 +111,7 @@ $month_year    = $this->input->post('month_year');
             <th width="170px" style="text-align: center !important;"><center> Jumlah<br>Hari Kerja</center></th>
             <th width="170px" style="text-align: center !important;"><center> Total<br>Gram</center></th>
             <th width="170px" style="text-align: center !important;"><center> Total<br>Upah</center></th>
+            <th width="170px" style="text-align: center !important;"><center> Total<br>Insentif</center></th>
             <th width="170px" style="text-align: center !important;"><center> Total<br>Tambahan </center></th>
             <th width="170px" style="text-align: center !important;"><center> Total<br>Diperbantukan </center></th>
             <th width="170px" style="text-align: center !important;"><center> BPJS Kes </center></th>
@@ -127,7 +128,7 @@ $month_year    = $this->input->post('month_year');
         </thead>
         <tfoot>
             <tr>                       
-            <th colspan ="19" style="text-align: right !important;"> <span class="info_resume_info"></span></th>             
+            <th colspan ="20" style="text-align: right !important;"> <span class="info_resume_info"></span></th>             
             <th width="120px" style="text-align: right !important;"> <span class="info_resume_gaji"></span> </th>       
             <th width="120px" ><center> </center></th>
             <th width="120px" ><center> </center></th>
@@ -239,6 +240,7 @@ $month_year    = $this->input->post('month_year');
                     {"name": "kolom_13", "className": "text-right"},
                     {"name": "kolom_14", "className": "text-right"},
                     {"name": "kolom_15", "className": "text-right"},
+                    {"name": "kolom_24", "className": "text-right"},
                     {"name": "kolom_16", "className": "text-right"},
                     {"name": "kolom_17", "className": "text-right"},
                     {"name": "kolom_18", "className": "text-right"},

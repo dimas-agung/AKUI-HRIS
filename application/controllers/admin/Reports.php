@@ -16763,6 +16763,7 @@ class Reports extends MY_Controller
                 $r->jumlah_gram,
 
                 number_format($r->jumlah_biaya, 0, ',', '.'),
+                number_format($r->jumlah_insentif, 0, ',', '.'),
                 // 16
                 number_format($r->commissions_amount, 0, ',', '.'),
                 number_format($r->commissions_help_amount, 0, ',', '.'),
@@ -17103,7 +17104,7 @@ class Reports extends MY_Controller
             //table header
             $cols = array("B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T");
 
-            $val = array("No", "Nama", 'Jabatan', "Status", "Grade", "Tanggal Kerja", "Masa Kerja", "Jum Hadir", "Total Gram", "Total Biaya", "Total Tambahan", "Total Diperbantukan", "Total Potong", "Total BPJS Kes", "Total BPJS TK", "Gaji Diterima", "No.Rekening", "Nama Bank", "Email");
+            $val = array("No", "Nama", 'Jabatan', "Status", "Grade", "Tanggal Kerja", "Masa Kerja", "Jum Hadir", "Total Gram", "Total Biaya", "Total Tambahan", "Total Insentif", "Total Potong", "Total BPJS Kes", "Total BPJS TK", "Gaji Diterima", "No.Rekening", "Nama Bank", "Email");
 
             $style = array(
                 'alignment' => array(
@@ -17379,7 +17380,7 @@ class Reports extends MY_Controller
                         $objset->setCellValue("K" . $baris, $r->jumlah_biaya);                 // 11.Jumlah Biaya
 
                         $objset->setCellValue("L" . $baris, $r->commissions_amount);         // 13.Total Insentif
-                        $objset->setCellValue("M" . $baris, $r->commissions_help_amount);     // 14.Total Diberbantukan
+                        $objset->setCellValue("M" . $baris, $r->jumlah_insentif);     // 14.Total Diberbantukan
                         $objset->setCellValue("N" . $baris, $r->minus_amount);                 // 15.Total Potong
                         $objset->setCellValue("O" . $baris, $r->bpjs_kes_amount);             // 16.Total BPJS KES
                         $objset->setCellValue("P" . $baris, $r->bpjs_tk_amount);             // 17.Total BPJS TK
@@ -19343,7 +19344,6 @@ class Reports extends MY_Controller
                 $objPHPExcel->getActiveSheet()->getStyle($cols[$a] . '5')->applyFromArray($style);
             }
 
-
             $no     = 1;
             $baris = $no + 6;
             foreach ($company_list->result() as $r) {
@@ -19538,6 +19538,7 @@ class Reports extends MY_Controller
 
         // date and employee id/company id
         $company_id = $this->input->get("company_id");
+        $workstation_id = $this->input->get("workstation_id");
         $periode_id = $this->input->get("periode_id");
 
         $tanggal = $this->Timesheet_model->read_periode_bulan($periode_id);
@@ -19557,7 +19558,7 @@ class Reports extends MY_Controller
 
         // $history = $this->Payroll_model->cek_jumlah_gaji($this->input->get("company_id"),$start_date,$end_date);
 
-        $history = $this->Payroll_model->get_company_payslip_perbulan_borongan($company_id, $start_date, $end_date);
+        $history = $this->Payroll_model->get_company_payslip_perbulan_borongan($company_id,$workstation_id, $start_date, $end_date);
 
         // echo "<pre>";
         // print_r($this->db->last_query());
@@ -19581,6 +19582,7 @@ class Reports extends MY_Controller
             $employee_name = strtoupper($full_name);
 
             $jumlah_gaji = $this->Payroll_model->cek_jumlah_gaji_borongan($r->employee_id, $start_date, $end_date);
+            // var_dump($jumlah_gaji);return;
             if (!is_null($jumlah_gaji)) {
                 $gaji_karyawan = $jumlah_gaji[0]->jumlah;
             } else {
@@ -19719,12 +19721,12 @@ class Reports extends MY_Controller
 
         // $key = $this->uri->segment(5);
 
-        $company_id = $this->input->post('company');
+        $company_id = $this->input->post('company_id');
+        $workstation_id = $this->input->post('workstation_id');
         $periode_id = $this->input->post("periode_id");
 
         $tanggal = $this->Timesheet_model->read_periode_bulan($periode_id);
         if (!is_null($tanggal)) {
-
             $start_date    = $tanggal[0]->start_date;
             $end_date      = $tanggal[0]->end_date;
         } else {
@@ -19744,6 +19746,11 @@ class Reports extends MY_Controller
         $company = $this->Core_model->read_company_info($company_id);
         $company_name = $company[0]->name;
 
+        $employee_list = $this->Payroll_model->get_company_payslip_perbulan_cetak_borongan($company_id,$workstation_id, $start_date, $end_date);
+        // echo "<pre>";
+        // print_r($this->db->last_query());
+        // echo "</pre>";
+        // die();
         $pdf = new Pdf('P', 'mm', 'F4', true, 'UTF-8', false);
 
         // set document information
@@ -19818,26 +19825,28 @@ class Reports extends MY_Controller
 
         $pdf->Ln(7);
 
-        $employee_list = $this->Payroll_model->get_company_payslip_perbulan_cetak_borongan($company_id, $start_date, $end_date);
-
+      
+        
         if (count($employee_list) > 0) {
 
             foreach ($employee_list->result() as $r) {
 
                 // get addd by > template
-                $user = $this->Core_model->read_user_info($r->employee_id);
+                // $user = $this->Core_model->read_user_info($r->employee_id);
                 // user full name
-                $full_name = $user[0]->first_name . ' ' . $user[0]->last_name;
+                $full_name = $r->first_name . ' ' . $r->last_name;
 
                 // get workstation
-                $workstation = $this->Core_model->read_workstation_info($r->workstation_id);
-                if (!is_null($workstation)) {
-                    $workstation_name = $workstation[0]->workstation_name;
+                // $workstation = $this->Core_model->read_workstation_info($r->workstation_id);
+                if (!is_null($r->workstation_name)) {
+                    $workstation_name = $r->workstation_name;
                 } else {
                     $workstation_name = '--';
                 }
 
-                $jumlah_gaji = $this->Payroll_model->cek_jumlah_gaji_borongan($r->employee_id, $start_date, $end_date);
+                $jumlah_gaji = $this->Payroll_model->cek_jumlah_gaji_borongan($r->user_id, $start_date, $end_date);
+                // echo $r->user_id;
+                // var_dump($jumlah_gaji);return;
                 if (!is_null($jumlah_gaji)) {
                     $gaji_karyawan = $jumlah_gaji[0]->jumlah;
                 } else {
@@ -19853,27 +19862,27 @@ class Reports extends MY_Controller
                                                     <table border="0" cellpadding="1" cellspacing="0" width="100%" style="font-size:8px;" >
 
                                                         <tr >
-                                                            <td width="25%;" colspan="3" > <strong>Nama</strong> </td>
+                                                            <td width="25%;" colspan="4" > <strong>Nama</strong> </td>
                                                             <td width="75%;" >: ' . strtoupper($full_name) . '</td>
                                                         </tr>
 
                                                         <tr>
-                                                            <td width="25%;" colspan="3"> <strong>Divisi</strong> </td>
+                                                            <td width="25%;" colspan="4"> <strong>Divisi</strong> </td>
                                                             <td width="75%;" >: ' . strtoupper($workstation_name) . '</td>
                                                         </tr>
 
                                                         <tr>
-                                                            <td width="25%;" colspan="3"> <strong>Periode</strong> </td>
+                                                            <td width="25%;" colspan="4"> <strong>Periode</strong> </td>
                                                             <td width="75%;" >: ' . $month_payment . '</td>
                                                         </tr>
 
                                                         <tr>
-                                                            <td width="25%;" colspan="3"> <strong>No.Rekening</strong> </td>
+                                                            <td width="25%;" colspan="4"> <strong>No.Rekening</strong> </td>
                                                             <td width="75%;" >: ' . $r->rekening_name . ' (' . $r->bank_name . ')</td>
                                                         </tr>
 
                                                         <tr>
-                                                            <td width="100%;" colspan="4">  </td>
+                                                            <td width="100%;" colspan="5">  </td>
 
                                                         </tr>
 
@@ -19887,64 +19896,66 @@ class Reports extends MY_Controller
                                                     <table border="1" cellpadding="1" cellspacing="0" width="100%" style="font-size:8px;" >
 
                                                         <tr>
-                                                            <td width="35%;" align ="center" > <strong>Tanggal</strong> </td>
-                                                            <td width="30%;" align ="center" > <strong>Jumlah gram</strong> </td>
-                                                            <td width="35%;" align ="center" > <strong>Jumlah</strong> </td>
+                                                            <td width="30%;" align ="center" > <strong>Tanggal</strong> </td>
+                                                            <td width="20%;" align ="center" > <strong>Jumlah gram</strong> </td>
+                                                            <td width="25%;" align ="center" > <strong>Jumlah</strong> </td>
+                                                            <td width="25%;" align ="center" > <strong>Insentif</strong> </td>
 
                                                         </tr>';
 
+//
+
+                $sql_check_produktifitas = "SELECT employee_id,gram_tanggal,SUM(gram_nilai) AS jum_gram_nilai, SUM(gram_biaya) AS jum_gram_biaya,SUM(insentif) AS jum_insentif
+                FROM xin_workstation_gram_terima
+                WHERE employee_id ='" . $r->employee_id . "' AND gram_tanggal >= '" . $start_date . "'  AND gram_tanggal <='" . $end_date . "' GROUP BY employee_id,gram_tanggal ";
+
+                $arrayProduktifitas = $this->db->query($sql_check_produktifitas)->result_array();
+                // var_dump($arrayProduktifitas);return;
+                
+                $sql_check_diperbantukan = "SELECT employee_id,commission_date,SUM(commission_amount) as commission_amount
+                 FROM xin_salary_commissions WHERE employee_id ='" . $r->employee_id . "' AND commission_date >= '" . $start_date . "' AND commission_date <= '" . $end_date . "' AND flag = '1' GROUP BY   employee_id,commission_date";
+                // print($sql_check_diperbantukan);
+                $arrayCommisionHelp = $this->db->query($sql_check_diperbantukan)->result_array();
+                $count = 1;
                 foreach ($date_range as $date) {
 
                     $attendance_date =  $date->format("Y-m-d");
-
                     $tday            = $this->Timesheet_model->conHariNama(date("D", strtotime($attendance_date)));
-
+                    
                     // =========================================================================================================
                     // TAMPILKAN
                     // =========================================================================================================
                     $gram_nilai = '0';
                     $gram_biaya = '0';
-
-                    $sql_check_produktifitas = "SELECT sum(gram_nilai) as jum_gram_nilai, sum(gram_biaya) as jum_gram_biaya FROM xin_workstation_gram_terima WHERE employee_id ='" . $user[0]->employee_id . "' AND gram_tanggal = '" . $attendance_date . "' ";
-                    // echo "<pre>";
-                    // print_r($sql_check_izin);
-                    // echo "</pre>";
-                    // die;
-                    $query_check_produktifitas = $this->db->query($sql_check_produktifitas);
-                    if ($query_check_produktifitas->num_rows() > 0) {
-                        foreach ($query_check_produktifitas->result() as $row_check_produktifitas) :
-                            $gram_nilai       =  $row_check_produktifitas->jum_gram_nilai;
-                            $gram_biaya       =  $row_check_produktifitas->jum_gram_biaya;
-                        endforeach;
-                    } else {
-
-                        $gram_nilai = '0';
-                        $gram_biaya = '0';
-                    }
-                    // =========================================================================================================
-                    // TAMPILKAN
-                    // =========================================================================================================
-
+                    $jum_insentif = '0';
                     $commissions_help_amount = '0';
-
-                    $sql_check_diperbantukan = "SELECT * FROM xin_salary_commissions WHERE employee_id ='" . $user[0]->user_id . "' AND commission_date = '" . $attendance_date . "' AND flag = '1' ";
-                    // echo "<pre>";
-                    // print_r($sql_check_diperbantukan);
-                    // echo "</pre>";
-                    // die;
-                    $query_check_diperbantukan = $this->db->query($sql_check_diperbantukan);
-                    if ($query_check_diperbantukan->num_rows() > 0) {
-                        foreach ($query_check_diperbantukan->result() as $row_check_diperbantukan) :
-                            $commissions_help_amount       =  $row_check_diperbantukan->commission_amount;
-                        endforeach;
-                    } else {
-
-                        $commissions_help_amount = '0';
+                    $check_produktifitas = array_search($attendance_date, array_column($arrayProduktifitas, 'gram_tanggal'));
+                    // if($count ==2){
+                    //     echo 123;
+                    //     var_dump($arrayProduktifitas[$check_produktifitas]['jum_gram_biaya']);
+                    //     if (!is_bool($check_produktifitas)) {
+                    //         echo $arrayProduktifitas[$check_produktifitas]['jum_gram_biaya'];
+                    //     }
+                    //     var_dump($check_produktifitas);return;
+                    // }
+                    $count++;
+                    $check_commision = array_search($attendance_date, array_column($arrayCommisionHelp, 'commission_date'));
+                    if (!is_bool($check_produktifitas)) {
+                    // if ($check_produktifitas) {
+                        # code...
+                        $gram_nilai       =  $arrayProduktifitas[$check_produktifitas]['jum_gram_nilai'];
+                        $gram_biaya       =  $arrayProduktifitas[$check_produktifitas]['jum_gram_biaya'];
+                        $jum_insentif      =  $arrayProduktifitas[$check_produktifitas]['jum_insentif'];
+                    }
+                    if ($check_commision) {
+                        # code...
+                        $commissions_help_amount       =  $arrayProduktifitas[$check_commision]['commission_amount']; 
                     }
 
                     if ($commissions_help_amount == '0') {
 
                         $jumlah = number_format($gram_biaya, 0, ',', '.');
+                        $jumlah_insentif = number_format($jum_insentif, 0, ',', '.');
                     } else {
 
                         $jumlah = number_format($commissions_help_amount, 0, ',', '.') . ' *';
@@ -19953,9 +19964,10 @@ class Reports extends MY_Controller
                     $tbl1 .= '
 
                                                                 <tr>
-                                                                    <td width="35%;" align ="center" > ' . $tday . ' ' . date("d-m-Y", strtotime($attendance_date)) . ' </td>
-                                                                    <td width="30%;" align ="center" > ' . number_format($gram_nilai, 0, ',', '.') . ' </td>
-                                                                    <td width="35%;" align ="right" > ' . $jumlah . ' &nbsp;&nbsp;&nbsp;</td>
+                                                                    <td width="30%;" align ="center" > ' . $tday . ' ' . date("d-m-Y", strtotime($attendance_date)) . ' </td>
+                                                                    <td width="20%;" align ="center" > ' . number_format($gram_nilai, 0, ',', '.') . ' </td>
+                                                                    <td width="25%;" align ="right" > ' . $jumlah . ' &nbsp;&nbsp;&nbsp;</td>
+                                                                    <td width="25%;" align ="right" > ' . $jumlah_insentif . ' &nbsp;&nbsp;&nbsp;</td>
 
                                                                 </tr>';
                 }
@@ -20008,6 +20020,7 @@ class Reports extends MY_Controller
                                     </table>';
 
                 $pdf->writeHTML($tbl1, true, false, true, false, 'J');
+                // break;
             }
         }
 
@@ -24072,4 +24085,775 @@ class Reports extends MY_Controller
         $start = intval($this->input->get("start"));
         $length = intval($this->input->get("length"));
     }
+
+      // daily attendance > timesheet
+      public function employees_timelate()
+      {
+          $session = $this->session->userdata('username');
+          if (empty($session)) {
+              redirect('admin/');
+          }
+          $data['title']       = 'Laporan Karyawan Terlambat | ' . $this->Core_model->site_title();
+          $data['icon']        = '<i class="fa fa-hand-o-up"></i>';
+          $data['desc']        = '<span><b>INFORMASI : </b> Data Keterlambatan Setiap Hari ini dilakukan setelah Proses Penarikan absensi! </span>';
+          $data['breadcrumbs'] = 'Data Keterlambatan (Per Hari / Tanggal)';
+          $data['path_url']    = 'employees_timelate';
+  
+          $data['get_all_companies']    = $this->Company_model->get_company();
+          $data['all_department']    = $this->Company_model->get_department();
+          $data['all_office_shifts'] = $this->Location_model->all_payroll_jenis();
+  
+          $role_resources_ids        = $this->Core_model->user_role_resource();
+  
+          if (in_array('0911', $role_resources_ids)) {
+              if (!empty($session)) {
+                  $data['subview'] = $this->load->view("admin/reports/employee_timelate", $data, TRUE);
+                  $this->load->view('admin/layout/layout_main', $data); //page load
+              } else {
+                  redirect('admin/dashboard/');
+              }
+          } else {
+              redirect('admin/dashboard');
+          }
+      }
+  
+      // daily attendance list > timesheet
+      public function employees_timelate_list()
+      {
+        //   return 123;
+          $data['title'] = $this->Core_model->site_title();
+          $session       = $this->session->userdata('username');
+          $user_info     = $this->Core_model->read_user_info($session['user_id']);
+        //   var_dump($session);return;
+        // return;
+          if (!empty($session)) {
+              $this->load->view("admin/reports/employee_timelate", $data);
+          } else {
+              redirect('admin/');
+          }
+          // Datatables Variables
+          $draw               = intval($this->input->get("draw"));
+          $start              = intval($this->input->get("start"));
+          $length             = intval($this->input->get("length"));
+          $role_resources_ids = $this->Core_model->user_role_resource();
+  
+          $attendance_date    = $this->input->get("attendance_date");
+          $departement_id         = $this->input->get("department_id");
+          $company_id         = $this->input->get("company_id");
+  
+  
+         // /$check_hari_libur_kantor = $this->check_hari_libur_kantor('2212',$attendance_date);
+                                // var_dump($check_hari_libur_kantor['status']);return;
+          $employee = $this->Employees_model->get_employee_by_department($departement_id);
+        //      echo "<pre>";
+        // print_r($this->db->last_query());
+        // echo "</pre>";
+        // die();
+          $emp_ids = array();
+          if(!empty($employee)){
+
+              foreach($employee as $key=>$value){
+                $emp_ids[] = $value->user_id;
+              }
+          }
+        //   var_dump($emp_ids);return;
+          $system   = $this->Core_model->read_setting_info(1);
+          $emp_ids= !is_array($emp_ids) ? [$emp_ids] : $emp_ids;
+          $query = $this->db
+              ->select('*')
+              ->where_in('employee_id', $emp_ids)
+              ->where('attendance_date =', $attendance_date)
+              ->where('company_id =', $company_id)
+              ->where('time_late != 0');
+          
+  
+          $query1 = $query->get('xin_attendance_time')->result();
+        //      echo "<pre>";
+        // print_r($this->db->last_query());
+        // echo "</pre>";
+        // die();
+          $data = array();
+  
+          $no = 1;
+          $dataInsert = [];
+          if (!empty($query1)) {
+              foreach ($query1 as $r) {
+                  
+                  // user full name
+                  $user_info      = $this->Employees_model->get_employees_by_user_id($r->employee_id);
+                  // var_dump($user_info);return;
+                  if (!empty($user_info)) {
+                      $user_id        = $user_info->user_id;
+                      $company_name        = $user_info->company_name;
+                      $full_name      = $user_info->first_name . ' ' . $user_info->last_name;
+                      $designation_name  = $user_info->designation_name;
+                      $department_id  = $user_info->department_id;
+                      $designation_id = $user_info->designation_id;
+                      $workstation_id = $user_info->workstation_id;
+                      $workstation_name = $user_info->workstation_name;
+                      $start_join = $user_info->date_of_joining;
+                  } else {
+                      $user_id        = '';
+                      $emp_nik        = '';
+                      $designation_name  = '';
+                      $company_name        = '';
+                      $full_name      = '';
+                      $department_id  = '';
+                      $designation_id = '';
+                      $designation_id = '';
+                      $workstation_id = '';
+                      $workstation_name = '';
+                  }
+          
+                  $attendance_status = $r->attendance_status;
+                  $attendance_keterangan = $r->attendance_keterangan;
+                  $time_late = $r->time_late;
+                  $early_leaving = $r->early_leaving;
+                  $overtime = $r->overtime;
+                  $total_work = $r->total_work;
+                  $attendance_jadwal = $r->attendance_jadwal;
+                  $jam_masuk = $r->clock_in;
+                  $jam_pulang = $r->clock_out;
+      
+                  $d_date = $this->Core_model->set_date_format($attendance_date);
+      
+                  $data[] = array(
+                      $no,
+                      strtoupper($full_name),
+                      date("d-m-Y", strtotime($r->date_of_joining)),
+                      substr(strtoupper($designation_name), 0, 30),
+                      $workstation_name,
+                      $attendance_jadwal,
+                      $d_date,
+                      $attendance_status,
+                      $jam_masuk,
+                      $jam_pulang,
+                      $time_late,
+                    //   $early_leaving,
+                    //   $overtime,
+                    //   $total_work,
+                      $attendance_keterangan
+                  );
+                  $no++;
+                  // break;
+                  // }
+              }
+              
+              # code...
+          }else{
+  
+          }
+  
+          $output = array(
+              "draw" => $draw,
+              "recordsTotal" => count($query1),
+              "recordsFiltered" => count($query1),
+              "data" => $data
+          );
+          echo json_encode($output);
+          exit();
+      }
+      public function export_employees_timelate_list()
+      {
+        $data['title'] = $this->Core_model->site_title();
+        $session       = $this->session->userdata('username');
+        $user_info     = $this->Core_model->read_user_info($session['user_id']);
+        //     var_dump($session);return;
+        //   return;
+        if (!empty($session)) {
+            $this->load->view("admin/reports/employee_timelate", $data);
+        } else {
+            redirect('admin/');
+        }
+        // Datatables Variables
+        $draw               = intval($this->input->get("draw"));
+        $start              = intval($this->input->get("start"));
+        $length             = intval($this->input->get("length"));
+        $role_resources_ids = $this->Core_model->user_role_resource();
+
+        $attendance_date    = $this->input->post("attendance_date");
+        $departement_id         = $this->input->post("department_id");
+        $company_id         = $this->input->post("company_id");
+        $company = $this->Core_model->read_company_info($company_id);
+        $company_name = $company[0]->name;
+
+       // /$check_hari_libur_kantor = $this->check_hari_libur_kantor('2212',$attendance_date);
+                              // var_dump($check_hari_libur_kantor['status']);return;
+        $employee = $this->Employees_model->get_employee_by_department($departement_id);
+        //        echo "<pre>";
+        //   print_r($this->db->last_query());
+        //   echo "</pre>";
+        //   die();
+        $emp_ids = array();
+        if(!empty($employee)){
+
+            foreach($employee as $key=>$value){
+              $emp_ids[] = $value->user_id;
+            }
+        }
+        //   var_dump($emp_ids);return;
+        $system   = $this->Core_model->read_setting_info(1);
+        $emp_ids= !is_array($emp_ids) ? [$emp_ids] : $emp_ids;
+        $query = $this->db
+            ->select('*')
+            ->where_in('employee_id', $emp_ids)
+            ->where('attendance_date =', $attendance_date)
+            ->where('company_id =', $company_id)
+            ->where('time_late != 0');
+        
+
+        $query1 = $query->get('xin_attendance_time')->result();
+        //     echo "<pre>";
+        //   print_r($this->db->last_query());
+        //   echo "</pre>";
+        //   die();
+        $data = array();
+
+        $no = 1;
+  
+        if (!empty($query1)) {
+           
+  
+              $objPHPExcel = new PHPExcel();
+  
+              $objPHPExcel->setActiveSheetIndex(0);
+              // set Header
+            //   $objPHPExcel->getActiveSheet()->SetCellValue('A1', 'First Name');
+              $objPHPExcel->getActiveSheet()->SetCellValue('B1', 'NO');
+              $objPHPExcel->getActiveSheet()->SetCellValue('C1', 'Nama karyawan');
+              $objPHPExcel->getActiveSheet()->SetCellValue('D1', 'Tanggal Join');
+              $objPHPExcel->getActiveSheet()->SetCellValue('E1', 'Departemen');       
+              $objPHPExcel->getActiveSheet()->SetCellValue('F1', 'Workstation');       
+              $objPHPExcel->getActiveSheet()->SetCellValue('G1', 'Posisi');       
+              $objPHPExcel->getActiveSheet()->SetCellValue('H1', 'Jam Kerja');       
+              $objPHPExcel->getActiveSheet()->SetCellValue('I1', 'Jam Masuk');       
+              $objPHPExcel->getActiveSheet()->SetCellValue('J1', 'Jam Keluar');       
+              $objPHPExcel->getActiveSheet()->SetCellValue('K1', 'Total terlambat (Menit)');       
+              $objPHPExcel->getActiveSheet()->SetCellValue('L1', 'Keterangan');       
+              // set Row
+              $rowCount = 2;
+              
+              $no = 1;
+              $dep = 1;
+              $baris = $dep + 1;
+            foreach ($query1 as $r) {
+                
+                // user full name
+                $user_info      = $this->Employees_model->get_employees_by_user_id($r->employee_id);
+                // var_dump($user_info);return;
+                if (!empty($user_info)) {
+                    $user_id        = $user_info->user_id;
+                    $company_name        = $user_info->company_name;
+                    $full_name      = $user_info->first_name . ' ' . $user_info->last_name;
+                    $designation_name  = $user_info->designation_name;
+                    $department_id  = $user_info->department_id;
+                    $department_name  = $user_info->department_name;
+                    $designation_id = $user_info->designation_id;
+                    $workstation_id = $user_info->workstation_id;
+                    $workstation_name = $user_info->workstation_name;
+                    $start_join = $user_info->date_of_joining;
+                } else {
+                    $user_id        = '';
+                    $emp_nik        = '';
+                    $designation_name  = '';
+                    $company_name        = '';
+                    $full_name      = '';
+                    $department_id  = '';
+                    $department_name  = '';
+                    $designation_id = '';
+                    $designation_id = '';
+                    $workstation_id = '';
+                    $workstation_name = '';
+                }
+        
+                $attendance_status = $r->attendance_status;
+                $attendance_keterangan = $r->attendance_keterangan;
+                $time_late = $r->time_late;
+                $early_leaving = $r->early_leaving;
+                $overtime = $r->overtime;
+                $total_work = $r->total_work;
+                $attendance_jadwal = $r->attendance_jadwal;
+                $jam_masuk = $r->clock_in;
+                $jam_pulang = $r->clock_out;
+    
+                $d_date = $this->Core_model->set_date_format($attendance_date);
+                $objset->setCellValue("B" . $baris, $no);                         // 2.No
+                $objset->setCellValue("C" . $baris, $full_name);                 // 3.Nama Karyawan
+                $objset->setCellValue("D" . $baris, $start_join);                     // 4.Tgl Join
+                $objset->setCellValue("E" . $baris, $department_name);             // 5.Departement
+                $objset->setCellValue("F" . $baris, $workstation_name);                 // 6.workstation
+                $objset->setCellValue("G" . $baris, $designation_name);                         // 7.posisi
+                $objset->setCellValue("H" . $baris, $attendance_jadwal);                     // 8.jadwal jam kerja
+
+                $objset->setCellValue("I" . $baris, $jam_masuk);             // 9.Gaji Pokok
+                $objset->setCellValue("J" . $baris, $jam_pulang);             // 10.Jumlah Hadir
+                $objset->setCellValue("K" . $baris, $time_late);             // 11.Total Gaji
+                $objset->setCellValue("L" . $baris, $attendance_keterangan);         // 12.Jumlah Jam Lembur
+
+
+                $no++;
+                $baris++;
+                $dep++;
+    
+            }
+  
+              // Rename worksheet
+              $objPHPExcel->getActiveSheet()->setTitle('Karyawan Terlambat');
+  
+              $objPHPExcel->getActiveSheet()->getSheetView()->setZoomScale(75);
+  
+              // Set active sheet index to the first sheet, so Excel opens this as the first sheet
+              $objPHPExcel->setActiveSheetIndex(0);
+  
+              // $objWriter = IOFactory::createWriter($objPHPExcel, 'Excel5');
+              $objWriter = IOFactory::createWriter($objPHPExcel, 'Excel2007');
+              $filename = 'Karyawan Terlambat ' . $company_name . ' - ' . $attendance_date;
+  
+              //sesuaikan headernya
+              ob_end_clean();
+  
+              header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+              header("Content-Disposition: attachment; filename=" . $filename . ".xlsx");
+  
+              header("Cache-Control: no-store, no-cache, must-revalidate");
+              header("Cache-Control: post-check=0, pre-check=0", false);
+  
+              // Date in the past
+              header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+  
+              // HTTP/1.1
+              header("Pragma: no-cache");
+  
+              $objWriter->save('php://output');
+            //   $status = 1;
+            //   echo $status;
+              exit;
+          } else {
+              
+            //   $status = 0;
+            //   echo $status;
+            echo 'Tidak ada data';
+              exit;
+          }
+      }
+      // daily attendance > timesheet
+      public function employees_timelate_rekap()
+      {
+          $session = $this->session->userdata('username');
+          if (empty($session)) {
+              redirect('admin/');
+          }
+          $data['title']       = 'Laporan Rekap Karyawan Terlambat | ' . $this->Core_model->site_title();
+          $data['icon']        = '<i class="fa fa-hand-o-up"></i>';
+          $data['desc']        = '<span><b>INFORMASI : </b> Data Rekap Keterlambatan ini dilakukan setelah Proses Penarikan absensi! </span>';
+          $data['breadcrumbs'] = 'Data Rekap Keterlambatan (Per Periode)';
+          $data['path_url']    = 'employees_timelate';
+  
+          $data['get_all_companies']    = $this->Company_model->get_company();
+          $data['all_department']    = $this->Company_model->get_department();
+          $data['all_office_shifts'] = $this->Location_model->all_payroll_jenis();
+  
+          $role_resources_ids        = $this->Core_model->user_role_resource();
+  
+          if (in_array('0911', $role_resources_ids)) {
+              if (!empty($session)) {
+                  $data['subview'] = $this->load->view("admin/reports/employee_timelate_rekap", $data, TRUE);
+                  $this->load->view('admin/layout/layout_main', $data); //page load
+              } else {
+                  redirect('admin/dashboard/');
+              }
+          } else {
+              redirect('admin/dashboard');
+          }
+      }
+  
+      // daily attendance list > timesheet
+      public function employees_timelate_rekap_list()
+      {
+        //   return 123;
+          $data['title'] = $this->Core_model->site_title();
+          $session       = $this->session->userdata('username');
+          $user_info     = $this->Core_model->read_user_info($session['user_id']);
+        //   var_dump($session);return;
+        // return;
+          if (!empty($session)) {
+              $this->load->view("admin/reports/employee_timelate", $data);
+          } else {
+              redirect('admin/');
+          }
+          // Datatables Variables
+          $draw               = intval($this->input->get("draw"));
+          $start              = intval($this->input->get("start"));
+          $length             = intval($this->input->get("length"));
+          $role_resources_ids = $this->Core_model->user_role_resource();
+  
+          $start_date    = $this->input->get("start_date");
+          $end_date    = $this->input->get("end_date");
+          $departement_id         = $this->input->get("department_id");
+          $company_id         = $this->input->get("company_id");
+  
+  
+         // /$check_hari_libur_kantor = $this->check_hari_libur_kantor('2212',$attendance_date);
+                                // var_dump($check_hari_libur_kantor['status']);return;
+          $employee = $this->Employees_model->get_employee_by_department($departement_id);
+        //      echo "<pre>";
+        // print_r($this->db->last_query());
+        // echo "</pre>";
+        // die();
+      
+          $emp_ids = array();
+          if(!empty($employee)){
+
+              foreach($employee as $key=>$value){
+                $emp_ids[] = $value->user_id;
+              }
+          }
+        //   var_dump($emp_ids);return;
+          $system   = $this->Core_model->read_setting_info(1);
+    //       $emp_ids= !is_array($emp_ids) ? [$emp_ids] : $emp_ids;
+    //       $query = $this->db
+    //           ->select('employee_id,SUM(time_late) as time_late')
+    //           ->where_in('employee_id', $emp_ids)
+    //           ->where('attendance_date >=', $start_date)
+    //           ->where('attendance_date <=', $end_date)
+    //           ->where('company_id =', $company_id)
+    //           ->where('time_late != 0')
+    //           ->group_by('employee_id')
+    //         ;
+          
+    // //    echo "<pre>";
+    // //     print_r($this->db->last_query());
+    // //     echo "</pre>";
+    // //     die();
+    //       $query1 = $query->get('xin_attendance_time')->result();
+        //   echo "<pre>";
+        //   print_r($this->db->last_query());
+        //   echo "</pre>";
+        //   die();
+        //   var_dump($query1);return;
+        $query = $this->db
+            ->select('employee_id,SUM(time_late) as time_late')
+            ->where_in('employee_id', $emp_ids)
+            ->where('attendance_date >=', $start_date)
+            ->where('attendance_date <=', $end_date)
+            ->where('company_id =', $company_id)
+            ->where('time_late != 0')
+            ->group_by('employee_id');
+        
+
+        $query1 = $query->get('xin_attendance_time')->result();
+              echo "<pre>";
+          print_r($this->db->last_query());
+          echo "</pre>";
+          die();
+          var_dump($query1);return;
+          $data = array();
+  
+          $no = 1;
+          $dataInsert = [];
+          if (!empty($query1)) {
+              foreach ($query1 as $r) {
+                  
+                  // user full name
+                  $user_info      = $this->Employees_model->get_employees_by_user_id($r->employee_id);
+                  // var_dump($user_info);return;
+                  if (!empty($user_info)) {
+                      $user_id        = $user_info->user_id;
+                      $company_name        = $user_info->company_name;
+                      $full_name      = $user_info->first_name . ' ' . $user_info->last_name;
+                      $designation_name  = $user_info->designation_name;
+                      $department_id  = $user_info->department_id;
+                      $designation_id = $user_info->designation_id;
+                      $workstation_id = $user_info->workstation_id;
+                      $workstation_name = $user_info->workstation_name;
+                      $start_join = $user_info->date_of_joining;
+                  } else {
+                      $user_id        = '';
+                      $emp_nik        = '';
+                      $designation_name  = '';
+                      $company_name        = '';
+                      $full_name      = '';
+                      $department_id  = '';
+                      $designation_id = '';
+                      $workstation_id = '';
+                      $workstation_name = '';
+                  }
+                  $start_date1 = new DateTime($start_date);
+                  $end_date1   = new DateTime($end_date);
+                  $end_date1   = $end_date1->modify('+1 day');
+                  $interval_re = new DateInterval('P1D');
+                  $date_range = new DatePeriod($start_date1, $interval_re, $end_date1);
+                  $attendance_arr = array();
+                  $dataLateByDate = [];
+                  $total_late = 0;
+                  $count_late = 0;
+                  foreach ($date_range as $date) {
+          
+                      $attendance_date =  $date->format("Y-m-d");
+                      $getLate = $this->db
+                        ->select('employee_id,attendance_date,SUM(time_late) as time_late')
+                        ->where('employee_id =', $r->employee_id)
+                        ->where('attendance_date =', $attendance_date)
+                        // ->where('attendance_date <=', $end_date)
+                        ->where('company_id =', $company_id)
+                        ->where('time_late != 0')
+                        ->group_by('employee_id,attendance_date')
+                        ;
+                      $result = $getLate->get('xin_attendance_time')->row();
+                      if(!empty($result)){
+
+                        $dataLateByDate[] = $result->time_late;
+                        $total_late += $result->time_late;
+                        $count_late += 1;
+                      }else{
+                        $dataLateByDate[] = 0;
+                      }
+                    //   var_dump($result);return;
+          
+                  }
+                  $d_date = $this->Core_model->set_date_format($attendance_date);
+
+                  $data[] =  array_merge(
+                        array(
+                            $no,
+                            strtoupper($full_name),
+                            date("d-m-Y", strtotime($start_join)),
+                            substr(strtoupper($designation_name), 0, 30),
+                            $workstation_name,
+                        ),
+                        $dataLateByDate,
+                        array(
+                            $total_late,
+                            $count_late,
+                        )
+                    );
+                  $no++;
+                //   var_dump($data);return;
+                  // break;
+                  // }
+              }
+              
+              # code...
+          }else{
+  
+          }
+  
+          $output = array(
+              "draw" => $draw,
+              "recordsTotal" => count($query1),
+              "recordsFiltered" => count($query1),
+              "data" => $data
+          );
+          echo json_encode($output);
+          exit();
+      }
+      public function export_employees_timelate_rekap()
+      {
+        $data['title'] = $this->Core_model->site_title();
+        $session       = $this->session->userdata('username');
+        $user_info     = $this->Core_model->read_user_info($session['user_id']);
+        //     var_dump($session);return;
+        //   return;
+        if (!empty($session)) {
+            $this->load->view("admin/reports/employee_timelate", $data);
+        } else {
+            redirect('admin/');
+        }
+        // Datatables Variables
+        $draw               = intval($this->input->get("draw"));
+        $start              = intval($this->input->get("start"));
+        $length             = intval($this->input->get("length"));
+        $role_resources_ids = $this->Core_model->user_role_resource();
+        
+        $start_date    = $this->input->get("start_date");
+        $end_date    = $this->input->get("end_date");
+        $departement_id         = $this->input->get("department_id");
+        $company_id         = $this->input->get("company_id");
+        $company = $this->Core_model->read_company_info($company_id);
+        $company_name = $company[0]->name;
+
+        $employee = $this->Employees_model->get_employee_by_department($departement_id);
+
+        $query = $this->db
+            ->select('employee_id,SUM(time_late) as time_late')
+            ->where('attendance_date >=', $start_date)
+            ->where('attendance_date <=', $end_date)
+            ->where('company_id =', $company_id)
+            ->where('time_late != 0')
+            ->group_by('employee_id');
+        
+
+        $query1 = $query->get('xin_attendance_time')->result();
+        $emp_ids = array();
+        if(!empty($employee)){
+
+            foreach($employee as $key=>$value){
+              $emp_ids[] = $value->user_id;
+            }
+        }
+      //   var_dump($emp_ids);return;
+        $system   = $this->Core_model->read_setting_info(1);
+        $emp_ids= !is_array($emp_ids) ? [$emp_ids] : $emp_ids;
+        $query = $this->db
+            ->select('employee_id,attendance_date,SUM(time_late) as time_late')
+            ->where_in('employee_id', $emp_ids)
+            ->where('attendance_date >=', $start_date)
+            ->where('attendance_date <=', $end_date)
+            ->where('company_id =', $company_id)
+            ->where('time_late != 0')
+            ->group_by('employee_id,attendance_date')
+          ;
+        
+
+        $query1 = $query->get('xin_attendance_time')->result();
+        //      echo "<pre>";
+        // print_r($this->db->last_query());
+        // echo "</pre>";
+        // die();
+        $data = array();
+
+        $no = 1;
+        $dataInsert = [];
+        if (!empty($query1)) {
+           
+  
+              $objPHPExcel = new PHPExcel();
+  
+              $objPHPExcel->setActiveSheetIndex(0);
+            //   $objPHPExcel->getActiveSheet()->mergeCells('A1:B2');
+              // set Header
+            //   $objPHPExcel->getActiveSheet()->SetCellValue('A1', 'First Name');
+              $objPHPExcel->getActiveSheet()->SetCellValue('B1', 'NO');
+              $objPHPExcel->getActiveSheet()->SetCellValue('C1', 'Nama karyawan');
+              $objPHPExcel->getActiveSheet()->SetCellValue('D1', 'Tanggal Join');
+              $objPHPExcel->getActiveSheet()->SetCellValue('E1', 'Posisi');       
+              $objPHPExcel->getActiveSheet()->SetCellValue('F1', 'Workstation');                
+              $objPHPExcel->getActiveSheet()->SetCellValue('G1', 'Total terlambat (Menit)');       
+              $objPHPExcel->getActiveSheet()->SetCellValue('L1', 'Keterangan');       
+              // set Row
+              $rowCount = 2;
+              
+              $no = 1;
+              $dep = 1;
+              $baris = $dep + 1;
+            foreach ($query1 as $r) {
+                
+                // user full name
+                $user_info      = $this->Employees_model->get_employees_by_user_id($r->employee_id);
+                // var_dump($user_info);return;
+                if (!empty($user_info)) {
+                    $user_id        = $user_info->user_id;
+                    $company_name        = $user_info->company_name;
+                    $full_name      = $user_info->first_name . ' ' . $user_info->last_name;
+                    $designation_name  = $user_info->designation_name;
+                    $department_id  = $user_info->department_id;
+                    $department_name  = $user_info->department_name;
+                    $designation_id = $user_info->designation_id;
+                    $workstation_id = $user_info->workstation_id;
+                    $workstation_name = $user_info->workstation_name;
+                    $start_join = $user_info->date_of_joining;
+                } else {
+                    $user_id        = '';
+                    $emp_nik        = '';
+                    $designation_name  = '';
+                    $company_name        = '';
+                    $full_name      = '';
+                    $department_id  = '';
+                    $department_name  = '';
+                    $designation_id = '';
+                    $designation_id = '';
+                    $workstation_id = '';
+                    $workstation_name = '';
+                }
+        
+                $attendance_status = $r->attendance_status;
+                $attendance_keterangan = $r->attendance_keterangan;
+                $time_late = $r->time_late;
+                $early_leaving = $r->early_leaving;
+                $overtime = $r->overtime;
+                $total_work = $r->total_work;
+                $attendance_jadwal = $r->attendance_jadwal;
+                $jam_masuk = $r->clock_in;
+                $jam_pulang = $r->clock_out;
+    
+                $d_date = $this->Core_model->set_date_format($attendance_date);
+                $objset->setCellValue("B" . $baris, $no);                         // 2.No
+                $objset->setCellValue("C" . $baris, $full_name);                 // 3.Nama Karyawan
+                $objset->setCellValue("D" . $baris, $start_join);                     // 4.Tgl Join
+                $objset->setCellValue("E" . $baris, $department_name);             // 5.Departement
+                $objset->setCellValue("F" . $baris, $workstation_name);                 // 6.workstation
+                $objset->setCellValue("G" . $baris, $designation_name);                         // 7.posisi
+                $objset->setCellValue("H" . $baris, $attendance_jadwal);                     // 8.jadwal jam kerja
+
+                $objset->setCellValue("I" . $baris, $jam_masuk);             // 9.Gaji Pokok
+                $objset->setCellValue("J" . $baris, $jam_pulang);             // 10.Jumlah Hadir
+                $objset->setCellValue("K" . $baris, $time_late);             // 11.Total Gaji
+                $objset->setCellValue("L" . $baris, $attendance_keterangan);         // 12.Jumlah Jam Lembur
+
+
+                $no++;
+                $baris++;
+                $dep++;
+    
+            }
+  
+              // Rename worksheet
+              $objPHPExcel->getActiveSheet()->setTitle('Karyawan Terlambat');
+  
+              $objPHPExcel->getActiveSheet()->getSheetView()->setZoomScale(75);
+  
+              // Set active sheet index to the first sheet, so Excel opens this as the first sheet
+              $objPHPExcel->setActiveSheetIndex(0);
+  
+              // $objWriter = IOFactory::createWriter($objPHPExcel, 'Excel5');
+              $objWriter = IOFactory::createWriter($objPHPExcel, 'Excel2007');
+              $filename = 'Karyawan Terlambat ' . $company_name . ' - ' . $attendance_date;
+  
+              //sesuaikan headernya
+              ob_end_clean();
+  
+              header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+              header("Content-Disposition: attachment; filename=" . $filename . ".xlsx");
+  
+              header("Cache-Control: no-store, no-cache, must-revalidate");
+              header("Cache-Control: post-check=0, pre-check=0", false);
+  
+              // Date in the past
+              header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+  
+              // HTTP/1.1
+              header("Pragma: no-cache");
+  
+              $objWriter->save('php://output');
+            //   $status = 1;
+            //   echo $status;
+              exit;
+          } else {
+              
+            //   $status = 0;
+            //   echo $status;
+            echo 'Tidak ada data';
+              exit;
+          }
+      }
+      public function get_department()
+      {
+  
+          $data['title'] = $this->Core_model->site_title();
+              $id = $this->uri->segment(4);
+  
+          $data = array(
+              'company_id' => $id
+          );
+          $session = $this->session->userdata('username');
+          if (!empty($session)) {
+              $this->load->view("admin/reports/get_department", $data);
+          } else {
+              redirect('admin/');
+          }
+          // Datatables Variables
+          $draw = intval($this->input->get("draw"));
+          $start = intval($this->input->get("start"));
+          $length = intval($this->input->get("length"));
+      }
 }

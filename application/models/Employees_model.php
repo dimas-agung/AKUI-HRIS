@@ -448,7 +448,7 @@ class Employees_model extends CI_Model
 
     //     return $query;
     // }
-    public function get_attendance_jenis_gaji_employees_reguler_load($jenis_gaji, $company_id)
+     function get_attendance_jenis_gaji_employees_reguler_load($jenis_gaji, $company_id)
     {
 
         $sql = 'SELECT kry.*,company.name as company_name,designation.designation_name as designation_name FROM view_karyawan_aktif  as kry
@@ -506,8 +506,9 @@ class Employees_model extends CI_Model
     public function get_employees_by_user_id($employee_id)
     {
 
-        $sql = 'SELECT kry.*,company.name AS company_name,designation.designation_name AS designation_name,workstation.workstation_id  FROM view_karyawan_aktif  AS kry
+        $sql = 'SELECT kry.*,company.name AS company_name,designation.designation_name AS designation_name,department.department_name,workstation.workstation_id,workstation.workstation_name  FROM view_karyawan_aktif  AS kry
                         LEFT JOIN xin_companies AS company ON kry.company_id = company.company_id
+                        LEFT JOIN xin_departments AS department ON department.department_id = kry.department_id
                         LEFT JOIN xin_designations AS designation ON designation.designation_id = kry.designation_id
                         LEFT JOIN xin_workstation AS workstation ON designation.workstation_id = workstation.workstation_id
                         WHERE kry.user_id = ? and kry.is_active = ? 

@@ -189,6 +189,13 @@ if(!is_null($role_user)){
                                         <td width="30px">2.</td>
                                         <td><a target="_blank" href="<?php echo site_url('admin/reports/employees_leave');?>"> Rekap Cuti Tahunan</a></td>
                                         </tr>
+                                        <tr>
+                                        <td width="30px">3.</td>
+                                        <td><a target="_blank" href="<?php echo site_url('admin/reports/employees_timelate');?>"> Laporan Karyawan Terlambat</a></td>
+                                        </tr>
+                                        <td width="30px">3.</td>
+                                        <td><a target="_blank" href="<?php echo site_url('admin/reports/employees_timelate_rekap');?>"> Rekap Karyawan Terlambat</a></td>
+                                        </tr>
                                     <?php } ?>
 
                                 <?php } ?>

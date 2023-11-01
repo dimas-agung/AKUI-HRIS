@@ -55,6 +55,13 @@
 	    $query = $this->db->query("SELECT * FROM xin_departments WHERE company_id = 1 ") ;
   	    return $query->result();
 	}
+	public function get_department_by_company($company_id) 
+	{			 
+	    $query ="SELECT * FROM xin_departments WHERE company_id = ? " ;
+		$binds = array($company_id);
+		$query = $this->db->query($query, $binds);
+		return $query->result();
+	}
 
 	public function get_workstation_reports() 
 	{			 
