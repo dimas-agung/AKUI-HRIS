@@ -1688,7 +1688,7 @@ class Timesheet extends MY_Controller
 
                 $info_T29 = $r->T29;
                 $info_T30 = $r->T30;
-                $info_T31 = '';
+                $info_T31 = $r->T31;
                 // Lainnya
             } else {
 
