@@ -610,6 +610,19 @@
 
         return $query;
     }
+    public function get_employee_payslip_perbulan_cetak($employee_id,$start_date,$end_date) {
+
+        $sql = 'SELECT * FROM xin_salary_payslips_harian WHERE employee_id = ? and start_date = ? and end_date = ? GROUP BY employee_id ORDER BY doj ASC';
+        $binds = array($employee_id,$start_date,$end_date);
+        $query = $this->db->query($sql, $binds);
+
+        // echo "<pre>";
+        // print($this->db->last_query());
+        // echo "</pre>";
+        // die();
+
+        return $query;
+    }
 
     public function get_company_payslip_perbulan_cetak_borongan($company_id,$workstation_id,$start_date,$end_date) {
 

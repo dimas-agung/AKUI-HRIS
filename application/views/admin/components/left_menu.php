@@ -510,6 +510,38 @@
               </ul>
             </li>
         <?php } ?>
+    <!-- ======================================================================================================== -->
+    <!-- PENGATURAN GAJI KARYAWAN BULANAN  -->
+    <!-- ======================================================================================================== -->
+
+        <?php  if(in_array('0800',$role_resources_ids) || 
+                  // Sub                           
+                  in_array('0810',$role_resources_ids) || 
+                  in_array('0820',$role_resources_ids) ||
+                  in_array('0830',$role_resources_ids) ||
+                  in_array('0840',$role_resources_ids) ||
+                  in_array('0850',$role_resources_ids) ||
+                  in_array('0870',$role_resources_ids) ||
+                  in_array('0860',$role_resources_ids) 
+                   
+                ) 
+              {?>
+            <li class="<?php if(!empty($arr_mod['atur_open']))echo $arr_mod['atur_open'];?> treeview"> 
+              <a href="#"> <i class="fa fa-gears"></i> 
+                <span>Master Gaji Bulanan</span> 
+                <span class="pull-right-container"> <i class="fa fa-angle-left pull-right"></i> </span> 
+              </a>
+              <ul class="treeview-menu">                
+
+                 <?php if(in_array('0810',$role_resources_ids)) { ?>
+                      <li class="sidenav-link <?php if(!empty($arr_mod['offsh_reguler_active']))echo $arr_mod['offsh_reguler_active'];?>"> <a href="<?php echo site_url('admin/master_gaji_bulanan/gajipokok');?>"> <i class="fa fa-share-alt"></i> Atur Gaji Pokok </a> </li>
+                      <li class="sidenav-link <?php if(!empty($arr_mod['offsh_reguler_active']))echo $arr_mod['offsh_reguler_active'];?>"> <a href="<?php echo site_url('admin/master_gaji_bulanan/tunjangan_karyawan');?>"> <i class="fa fa-share-alt"></i> Atur Tunjangan Karyawan </a> </li>
+                      <li class="sidenav-link <?php if(!empty($arr_mod['offsh_reguler_active']))echo $arr_mod['offsh_reguler_active'];?>"> <a href="<?php echo site_url('admin/master_gaji_bulanan/master_grade');?>"> <i class="fa fa-share-alt"></i> Master Grade Level </a> </li>
+                      <li class="sidenav-link <?php if(!empty($arr_mod['offsh_reguler_active']))echo $arr_mod['offsh_reguler_active'];?>"> <a href="<?php echo site_url('admin/master_gaji_bulanan/grade_karyawan');?>"> <i class="fa fa-share-alt"></i> Atur Grade Karyawan </a> </li>
+                <?php } ?>
+              </ul>
+            </li>
+        <?php } ?>
 
     <!-- ======================================================================================================== -->
     <!-- KEHADIRAN  -->

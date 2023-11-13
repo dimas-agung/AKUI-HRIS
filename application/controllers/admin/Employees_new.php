@@ -588,6 +588,7 @@ class Employees_new extends MY_Controller {
 					'employee_pin'      => $this->input->post('employee_pin'),
 					'office_shift_id'   => $this->input->post('office_shift_id'),
 					'reports_to'        => $this->input->post('reports_to'),
+					'superior_reports_to'        => $this->input->post('superior_reports_to'),
 					'first_name'        => $first_name,
 					'last_name'         => $last_name,
 					'ibu_name'          => $ibu_name,						

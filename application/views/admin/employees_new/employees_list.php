@@ -320,6 +320,15 @@ $reports_to = get_reports_team_data($session['user_id']); ?>
                                   <?php } ?>
                                 </select>
                               </div>
+                              <div class="form-group">
+                                <label for="reports_to">Nama Superior Atasan Langsung</label>
+                                <select name="superior_reports_to" class="form-control" data-plugin="select_hrm" data-placeholder="Superior Atasan Langsung">
+                                  <option value=""></option>
+                                  <?php foreach(get_reports_to() as $reports_to) {?>
+                                  <option value="<?php echo $reports_to->user_id?>"><?php echo $reports_to->first_name.' '.$reports_to->last_name;?></option>
+                                  <?php } ?>
+                                </select>
+                              </div>
                            </div>
                       
                       <?php } ?>                      
