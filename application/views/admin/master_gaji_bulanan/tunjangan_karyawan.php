@@ -72,8 +72,8 @@ if (in_array('0822', $role_resources_ids)) {
                     <label for="grade" class="control-label">Tunjangan Transportasi</label>
                         <input class="form-control" placeholder="Tunjangan Transportasi.." name="tunjangan_transportasi" type="number" value="" id="grade" required>
                     </div>
-                  </div>
-      
+                  </div>  
+                </div>
                 </div>
               </div>
 
@@ -105,6 +105,7 @@ if (in_array('0822', $role_resources_ids)) {
             <th style="text-align: center;">Tunjangan Benefit</th>
             <th style="text-align: center;">Tunjangan Transportasi</th>
             <th style="text-align: center;">Action</th>
+
             <!-- <th style="text-align: center;">Tanggal Akhir</th> -->
           </tr>
         </thead>

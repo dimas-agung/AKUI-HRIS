@@ -257,6 +257,7 @@ class Master_gaji_bulanan extends MY_Controller
                 'tunjangan_transportasi'    => $this->input->post('tunjangan_transportasi'),
                 'tunjangan_benefit'         => $this->input->post('tunjangan_benefit'),
                 'start_at'                  => date('Y-m-d'),
+
                 // 'end_at'         => $this->input->post('end_at'),
             );
             $result = $this->db->insert('employee_grade_allowance', $data);
@@ -343,6 +344,7 @@ class Master_gaji_bulanan extends MY_Controller
             exit;
         // }
     }
+
 
     // Validate and add info in database
     public function add_office_reguler()
