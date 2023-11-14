@@ -1,0 +1,84 @@
+# Leverage Browser Caching
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/jpg "access 1 year"
+  ExpiresByType image/jpeg "access 1 year"
+  ExpiresByType image/gif "access 1 year"
+  ExpiresByType image/png "access 1 year"
+  ExpiresByType text/css "access 1 month"
+  ExpiresByType text/html "access 1 month"
+  ExpiresByType application/pdf "access 1 month"
+  ExpiresByType text/x-javascript "access 1 month"
+  ExpiresByType application/x-shockwave-flash "access 1 month"
+  ExpiresByType image/x-icon "access 1 year"
+  ExpiresDefault "access 1 month"
+</IfModule>
+
+<IfModule mod_headers.c>
+  <filesmatch "\.(ico|flv|jpg|jpeg|png|gif|css|swf)$">
+  Header set Cache-Control "max-age=2678400, public"
+  </filesmatch>
+  <filesmatch "\.(html|htm)$">
+  Header set Cache-Control "max-age=7200, private, must-revalidate"
+  </filesmatch>
+  <filesmatch "\.(pdf)$">
+  Header set Cache-Control "max-age=86400, public"
+  </filesmatch>
+  <filesmatch "\.(js)$">
+  Header set Cache-Control "max-age=2678400, private"
+  </filesmatch>
+</IfModule>
+
+<IfModule mod_php5.c>
+  php_value post_max_size 5M
+  php_value upload_max_filesize 5M
+  php_value memory_limit 5000M
+  php_value max_execution_time 3000
+  php_value max_input_time 3000
+  php_value session.gc_maxlifetime 1200
+</IfModule>
+
+
+<IfModule mod_rewrite.c>
+
+
+  # !IMPORTANT! Set your RewriteBase here and don't forget trailing and leading
+  #  slashes.
+  # If your page resides at
+  #  http://www.example.com/mypage/test1
+  # then use
+  # RewriteBase /
+
+  RewriteEngine On
+  
+  <Files *>
+    Header set Cache-Control: "private, pre-check=0, post-check=0, max-age=0"
+    Header set Expires: 0
+    Header set Pragma: no-cache
+  </Files>
+
+  RewriteCond %{REQUEST_URI} ^system.*
+  RewriteRule (.*?)$ /index.php?/$1 [L]
+  
+  RewriteCond %{REQUEST_URI} ^application.*
+  RewriteRule (.*?)$ /index.php?/$1 [L]
+
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^(.*)$ index.php/$1 [L]
+  
+
+RewriteCond $1 !^(index\.php|public|\.txt)
+
+
+</IfModule>
+
+<IfModule !mod_rewrite.c>
+  # If we don't have mod_rewrite installed, all 404's
+  # can be sent to index.php, and everything works as normal.
+  # Submitted by: ElliotHaughin
+  
+  ErrorDocument 404 /index.php
+</IfModule>
+
