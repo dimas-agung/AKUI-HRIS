@@ -244,6 +244,13 @@ class Master_gaji_bulanan extends MY_Controller
             $data = array(
 
                 'employee_grade_id'         => $this->input->post('employee_grade_id'),
+                'tunjangan_grade'         => $this->input->post('tunjangan_grade'),
+                'tunjangan_komunikasi'         => $this->input->post('tunjangan_komunikasi'),
+                'tunjangan_tempat_tinggal'         => $this->input->post('tunjangan_tempat_tinggal'),
+                'tunjangan_transportasi'         => $this->input->post('tunjangan_transportasi'),
+                'tunjangan_benefit'         => $this->input->post('tunjangan_benefit'),
+                'start_at'         => date('Y-m-d'),
+
                 'tunjangan_grade'           => $this->input->post('tunjangan_grade'),
                 'tunjangan_komunikasi'      => $this->input->post('tunjangan_komunikasi'),
                 'tunjangan_tempat_tinggal'  => $this->input->post('tunjangan_tempat_tinggal'),
@@ -299,9 +306,12 @@ class Master_gaji_bulanan extends MY_Controller
                 $r->tunjangan_tempat_tinggal,
                 $r->tunjangan_transportasi,
                 $r->tunjangan_benefit,
+                // $r->end_at,
+
                 '<div style="text-align: center;">
                     <button type="button" class="btn btn-danger" onclick="setEndAt('.$r->id.')">Nonaktif</button>
                 </div>'
+
             );
         }
 
