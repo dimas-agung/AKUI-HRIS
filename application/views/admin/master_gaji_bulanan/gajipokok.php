@@ -96,6 +96,7 @@ if (in_array('0822', $role_resources_ids)) {
             <th style="text-align: center;">Nominal</th>
             <th style="text-align: center;">Tanggal Mulai</th>
             <th style="text-align: center;">Tanggal Akhir</th>
+            <th style="text-align: center;">Status</th>
           </tr>
         </thead>
       </table>
@@ -134,23 +135,48 @@ if (in_array('0822', $role_resources_ids)) {
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 
 <script type="text/javascript">
-  // $(document).ready(function(){
-  //      document.getElementById("T29").disabled = false;
-  //       document.getElementById("T30").disabled = false;
-  //       document.getElementById("T31").disabled = false;
-  // });
   $(document).ready(function(){
     var xin_table = $('#xin_table').dataTable({
-                							"bDestroy": true,
-                							"ajax": {
-                								url : "<?php echo site_url("admin/master_gaji_bulanan/gajipokok_list") ?>",
-                								type : 'GET'
-                							},
-                							dom: 'lBfrtip',
-                							// // "buttons": ['csv', 'excel', 'pdf', 'print'], // colvis > if needed
-                							"fnDrawCallback": function(settings){
-                							$('[data-toggle="tooltip"]').tooltip();          
-            							}
+          "bDestroy": true,
+          "ajax": {
+            url : "<?php echo site_url("admin/master_gaji_bulanan/gajipokok_list") ?>",
+            type : 'GET'
+          },
+          dom: 'lBfrtip',
+          // // "buttons": ['csv', 'excel', 'pdf', 'print'], // colvis > if needed
+          "fnDrawCallback": function(settings){
+          $('[data-toggle="tooltip"]').tooltip();          
+        }
+      });
     });
-  });
+
+    function aktif(id) {
+      $.ajax({
+        type: 'POST',
+        url: '<?php echo base_url("admin/master_gaji_bulanan/gajipokok_aktif"); ?>',
+        data: { id: id },
+        success: function(response) {
+          swal({ title: "Berhasil", text: "Berhasil Aktifkan Gaji Pokok", icon: "success" });
+          $('#xin_table').DataTable().ajax.reload();
+        },
+        error: function(error) {
+            console.error('Error:', error);
+        }
+      });
+    }
+
+    function nonaktif(id) {
+      $.ajax({
+        type: 'POST',
+        url: '<?php echo base_url("admin/master_gaji_bulanan/gajipokok_nonaktif"); ?>',
+        data: { id: id },
+        success: function(response) {
+          swal({ title: "Berhasil", text: "Berhasil Nonaktifkan Gaji Pokok", icon: "success" });
+          $('#xin_table').DataTable().ajax.reload();
+        },
+        error: function(error) {
+            console.error('Error:', error);
+        }
+      });
+    }
 </script>

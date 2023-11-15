@@ -99,7 +99,6 @@ class Master_gaji_bulanan extends MY_Controller
         // }
     }
 
-    // Jam Reguler > Daftar
     public function gajipokok_list()
     {
         $data['title'] = $this->Core_model->site_title();
@@ -132,6 +131,11 @@ class Master_gaji_bulanan extends MY_Controller
                 $r->nominal,
                 $r->start_at,
                 $r->end_at,
+                '<div style="text-align: center;">' . 
+                    '<button type="button" class="' . ($r->status == 1 ? 'btn btn-danger' : 'btn btn-success') . '" onclick="' . ($r->status == 1 ? 'nonaktif('.$r->id.')' : 'aktif('.$r->id.')' ) . '">' . 
+                        ($r->status == 1 ? 'Nonaktif' : 'Aktif') . 
+                    '</button>' . 
+                '</div>'
             );
         }
 
@@ -143,6 +147,40 @@ class Master_gaji_bulanan extends MY_Controller
         );
         echo json_encode($output);
         exit();
+    }
+
+    public function gajipokok_aktif()
+    {
+        $Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
+        $Return['csrf_hash'] = $this->security->get_csrf_hash();
+
+        $id = $this->input->post('id');
+
+        $data = array('status' => "1");
+        $this->db->where('id', $id);
+        $this->db->update('employee_basic_salary', $data);
+
+        redirect(base_url('admin/master_gaji_bulanan/gajipokok'));
+        $Return['result'] = $this->lang->line('xin_success_reguler_added');
+        $this->output($Return);
+        exit;
+    }
+
+    public function gajipokok_nonaktif()
+    {
+        $Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
+        $Return['csrf_hash'] = $this->security->get_csrf_hash();
+
+        $id = $this->input->post('id');
+
+        $data = array('status' => "0");
+        $this->db->where('id', $id);
+        $this->db->update('employee_basic_salary', $data);
+
+        redirect(base_url('admin/master_gaji_bulanan/gajipokok'));
+        $Return['result'] = $this->lang->line('xin_success_reguler_added');
+        $this->output($Return);
+        exit;
     }
 
     // Master Grade
