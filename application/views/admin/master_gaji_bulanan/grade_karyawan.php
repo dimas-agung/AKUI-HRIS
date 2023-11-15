@@ -48,6 +48,7 @@ if (in_array('0822', $role_resources_ids)) {
                 <div class="row">
                     <div class="col-md-12">
                         <label for="level" class="control-label">Karyawan Grade</label>
+                        <input type="hidden" name="id" id="id_karyawan">
                         <select name="grade_type" id="grade_type" class="form-control" required>
                             <option value="">-- Pilih Grade --</option>
                             <?php foreach ($employee_grade as $key => $value) { ?>
@@ -111,8 +112,14 @@ if (in_array('0822', $role_resources_ids)) {
         });
     });
 
+    function gradeModal(id) {
+      $('#id_karyawan').val(id)
+      $('#gradeModal').modal('show');
+      
+    }
+
     function editGrade() {
-      let id = $('#gradeModal').find('.btn.btn-success').data('id');
+        let id =  $('#id_karyawan').val();
         let grade_type = $("#grade_type").val();
         if ( grade_type == 0) {
           alert('Grade belum dipilih, Silakan pilih Grade Terlebih Dahulu !');
@@ -127,6 +134,7 @@ if (in_array('0822', $role_resources_ids)) {
             success: function(response) {
             swal({ title: "Berhasil", text: "Berhasil Update Karyawan", icon: "success" });
             $('#gradeModal').modal('hide');
+            $('#xin_table').DataTable().ajax.reload();
             },
             error: function(error) {
                 console.error('Error:', error);

@@ -413,7 +413,7 @@ class Master_gaji_bulanan extends MY_Controller
                 $r->grade_type,
 
                 '<div style="text-align: center;">
-                <button type="button" class="btn btn-success" data-toggle="modal" data-target="#gradeModal" data-id="'.$r->user_id.'">Edit Grade</button>
+                <button type="button" onclick="gradeModal(`'.$r->user_id.'`)" class="btn btn-success" >Edit Grade</button>
                 </div>'
 
             );
@@ -437,7 +437,7 @@ class Master_gaji_bulanan extends MY_Controller
         $id = $this->input->post('id');
 
         $data = array('grade_type' => $this->input->post('grade_type'));
-        $this->db->where('id', $id);
+        $this->db->where('user_id', $id);
         $this->db->update('xin_employees', $data);
 
         redirect(base_url('admin/master_gaji_bulanan/grade_karyawan'));
