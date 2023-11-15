@@ -99,7 +99,6 @@ class Master_gaji_bulanan extends MY_Controller
         // }
     }
 
-
     // Jam Reguler > Daftar
     public function gajipokok_list()
     {
@@ -146,7 +145,7 @@ class Master_gaji_bulanan extends MY_Controller
         exit();
     }
 
-    // Gaji Pokok
+    // Master Grade
     public function master_grade()
     {
 
@@ -174,6 +173,7 @@ class Master_gaji_bulanan extends MY_Controller
             redirect('admin/dashboard');
         }
     }
+
     public function master_grade_add()
     {
         // if ($this->input->post('add_type') == 'office_shift') {
@@ -200,7 +200,8 @@ class Master_gaji_bulanan extends MY_Controller
             exit;
         // }
     }
-    // 
+
+    // Tunjangan Karyawan
     public function tunjangan_karyawan()
     {
 
@@ -208,10 +209,10 @@ class Master_gaji_bulanan extends MY_Controller
         if (empty($session)) {
             redirect('admin/');
         }
-        $data['title']             = 'Master Grade | ' . $this->Core_model->site_title();
+        $data['title']             = 'Atur Tunjangan Karyawan | ' . $this->Core_model->site_title();
         $data['icon']              = '<i class="fa fa-share-alt"></i>';
-        $data['breadcrumbs']       = 'Master Grade';
-        $data['path_url']          = 'master_gaji_bulanan_master_grade';
+        $data['breadcrumbs']       = 'Atur Tunjangan Karyawan';
+        $data['path_url']          = 'master_gaji_bulanan_tunjangan_karyawan';
 
         $data['get_all_companies'] = $this->Company_model->get_company();
         $data['all_bulan_gaji']    = $this->Core_model->all_bulan_gaji();
@@ -234,6 +235,7 @@ class Master_gaji_bulanan extends MY_Controller
             redirect('admin/dashboard');
         }
     }
+
     public function tunjangan_karyawan_add()
     {
         // if ($this->input->post('add_type') == 'office_shift') {
@@ -243,13 +245,13 @@ class Master_gaji_bulanan extends MY_Controller
 
             $data = array(
 
-                'employee_grade_id'         => $this->input->post('employee_grade_id'),
-                'tunjangan_grade'         => $this->input->post('tunjangan_grade'),
-                'tunjangan_komunikasi'         => $this->input->post('tunjangan_komunikasi'),
-                'tunjangan_tempat_tinggal'         => $this->input->post('tunjangan_tempat_tinggal'),
-                'tunjangan_transportasi'         => $this->input->post('tunjangan_transportasi'),
-                'tunjangan_benefit'         => $this->input->post('tunjangan_benefit'),
-                'start_at'         => date('Y-m-d'),
+                'employee_grade_id'          => $this->input->post('employee_grade_id'),
+                'tunjangan_grade'            => $this->input->post('tunjangan_grade'),
+                'tunjangan_komunikasi'       => $this->input->post('tunjangan_komunikasi'),
+                'tunjangan_tempat_tinggal'   => $this->input->post('tunjangan_tempat_tinggal'),
+                'tunjangan_transportasi'     => $this->input->post('tunjangan_transportasi'),
+                'tunjangan_benefit'          => $this->input->post('tunjangan_benefit'),
+                'start_at'                   => date('Y-m-d'),
 
                 'tunjangan_grade'           => $this->input->post('tunjangan_grade'),
                 'tunjangan_komunikasi'      => $this->input->post('tunjangan_komunikasi'),
@@ -273,6 +275,7 @@ class Master_gaji_bulanan extends MY_Controller
             exit;
         // }
     }
+
     public function tunjangan_karyawan_list()
     {
         $data['title'] = $this->Core_model->site_title();
@@ -307,7 +310,8 @@ class Master_gaji_bulanan extends MY_Controller
                 $r->tunjangan_tempat_tinggal,
                 $r->tunjangan_transportasi,
                 $r->tunjangan_benefit,
-                // $r->end_at,
+                $r->start_at,
+                $r->end_at,
 
                 '<div style="text-align: center;">
                     <button type="button" class="btn btn-danger" onclick="setEndAt('.$r->id.')">Nonaktif</button>
@@ -325,25 +329,125 @@ class Master_gaji_bulanan extends MY_Controller
         echo json_encode($output);
         exit();
     }
+
     public function tunjangan_karyawan_add_end()
     {
-        // if ($this->input->post('add_type') == 'office_shift') {
-            /* Define return | here result is used to return user data and error for error message */
-            $Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
-            $Return['csrf_hash'] = $this->security->get_csrf_hash();
+        $Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
+        $Return['csrf_hash'] = $this->security->get_csrf_hash();
 
-            $id = $this->input->post('id');
+        $id = $this->input->post('id');
 
-            $data = array('end_at' => date('Y-m-d'));
-            $this->db->where('id', $id);
-            $this->db->update('employee_grade_allowance', $data);
+        $data = array('end_at' => date('Y-m-d'));
+        $this->db->where('id', $id);
+        $this->db->update('employee_grade_allowance', $data);
 
-            redirect(base_url('admin/master_gaji_bulanan/tunjangan_karyawan'));
-            $Return['result'] = $this->lang->line('xin_success_reguler_added');
-            $this->output($Return);
-            exit;
-        // }
+        redirect(base_url('admin/master_gaji_bulanan/tunjangan_karyawan'));
+        $Return['result'] = $this->lang->line('xin_success_reguler_added');
+        $this->output($Return);
+        exit;
     }
+
+    //Grade Karyawan
+    public function grade_karyawan()
+    {
+
+        $session = $this->session->userdata('username');
+        if (empty($session)) {
+            redirect('admin/');
+        }
+        $data['title']             = 'Atur Grade Karyawan | ' . $this->Core_model->site_title();
+        $data['icon']              = '<i class="fa fa-share-alt"></i>';
+        $data['breadcrumbs']       = 'Atur Grade Karyawan';
+        $data['path_url']          = 'master_gaji_bulanan_grade_karyawan';
+
+        $data['get_all_companies'] = $this->Company_model->get_company();
+        $data['all_bulan_gaji']    = $this->Core_model->all_bulan_gaji();
+
+         $sql = "SELECT *from employee_grade";
+		// echo $sql;return;
+        $result = $this->db->query($sql)->result();
+        $data['employee_grade']    = $result;
+
+        $role_resources_ids        = $this->Core_model->user_role_resource();
+        if (in_array('0810', $role_resources_ids)) {
+            if (!empty($session)) {
+                $data['subview'] = $this->load->view("admin/master_gaji_bulanan/grade_karyawan", $data, TRUE);
+                $this->load->view('admin/layout/layout_main', $data); //page load
+            } else {
+                redirect('admin/');
+            }
+        } else {
+            redirect('admin/dashboard');
+        }
+    }
+
+    public function grade_karyawan_list()
+    {
+        $data['title'] = $this->Core_model->site_title();
+        $session = $this->session->userdata('username');
+        if (!empty($session)) {
+            $this->load->view("admin/master_gaji_bulanan/grade_karyawan", $data);
+        } else {
+            redirect('admin/');
+        }
+        $draw = intval($this->input->get("draw"));
+        $start = intval($this->input->get("start"));
+        $length = intval($this->input->get("length"));
+
+
+        $role_resources_ids = $this->Core_model->user_role_resource();
+        $user_info = $this->Core_model->read_user_info($session['user_id']);
+
+        $sql = "SELECT * FROM xin_employees WHERE wages_type = 1 and is_active = 1";
+        $result = $this->db->query($sql)->result();
+
+        $data = array();
+
+        foreach ($result as $r) {
+
+            $data[] = array(
+                $r->first_name . ' ' . $r->last_name,
+                $r->employee_id,
+                $r->date_of_joining,
+                $r->department_id,
+                $r->grade_type,
+
+                '<div style="text-align: center;">
+                <button type="button" class="btn btn-success" data-toggle="modal" data-target="#gradeModal" data-id="'.$r->user_id.'">Edit Grade</button>
+                </div>'
+
+            );
+        }
+
+        $output = array(
+            "draw" => $draw,
+            "recordsTotal" => $this->db->query($sql)->num_rows(),
+            "recordsFiltered" => $this->db->query($sql)->num_rows(),
+            "data" => $data
+        );
+        echo json_encode($output);
+        exit();
+    }
+
+    public function grade_karyawan_update()
+    {
+        $Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
+        $Return['csrf_hash'] = $this->security->get_csrf_hash();
+
+        $id = $this->input->post('id');
+
+        $data = array('grade_type' => $this->input->post('grade_type'));
+        $this->db->where('id', $id);
+        $this->db->update('xin_employees', $data);
+
+        redirect(base_url('admin/master_gaji_bulanan/grade_karyawan'));
+        $Return['result'] = $this->lang->line('xin_success_reguler_added');
+        $this->output($Return);
+        exit;
+    }
+
+
+
 
 
     // Validate and add info in database
@@ -532,7 +636,7 @@ class Master_gaji_bulanan extends MY_Controller
             'office_shift_id'    => $result[0]->office_shift_id,
             'company_id'         => $result[0]->company_id,
             'jenis'              => $result[0]->jenis,
-            'employee_id'          => $result[0]->employee_id,
+            'employee_id'        => $result[0]->employee_id,
             'payroll_id'         => $result[0]->payroll_id,
             'start_date'         => $result[0]->start_date,
             'end_date'           => $result[0]->end_date,
@@ -3227,7 +3331,6 @@ class Master_gaji_bulanan extends MY_Controller
         $start = intval($this->input->get("start"));
         $length = intval($this->input->get("length"));
     }
-
 
     // get company > projects
     public function get_company_project()

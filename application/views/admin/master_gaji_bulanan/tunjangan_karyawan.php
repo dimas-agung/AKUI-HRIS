@@ -105,6 +105,8 @@ if (in_array('0822', $role_resources_ids)) {
             <th style="text-align: center;">Tunjangan Tempat Tinggal</th>
             <th style="text-align: center;">Tunjangan Benefit</th>
             <th style="text-align: center;">Tunjangan Transportasi</th>
+            <th style="text-align: center;">Start</th>
+            <th style="text-align: center;">End</th>
             <th style="text-align: center;">Action</th>
 
             <!-- <th style="text-align: center;">Tanggal Akhir</th> -->
@@ -146,18 +148,18 @@ if (in_array('0822', $role_resources_ids)) {
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 
 <script type="text/javascript">
-    $(document).ready(function(){
+  $(document).ready(function(){
     var xin_table = $('#xin_table').dataTable({
-                							"bDestroy": true,
-                							"ajax": {
-                								url : "<?php echo site_url("admin/master_gaji_bulanan/tunjangan_karyawan_list") ?>",
-                								type : 'GET'
-                							},
-                							dom: 'lBfrtip',
-                							// // "buttons": ['csv', 'excel', 'pdf', 'print'], // colvis > if needed
-                							"fnDrawCallback": function(settings){
-                							$('[data-toggle="tooltip"]').tooltip();          
-            							}
+      "bDestroy": true,
+      "ajax": {
+        url : "<?php echo site_url("admin/master_gaji_bulanan/tunjangan_karyawan_list") ?>",
+        type : 'GET'
+      },
+        dom: 'lBfrtip',
+        // // "buttons": ['csv', 'excel', 'pdf', 'print'], // colvis > if needed
+        "fnDrawCallback": function(settings){
+        $('[data-toggle="tooltip"]').tooltip();          
+      }
     });
   });
 
