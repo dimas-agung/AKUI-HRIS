@@ -131,8 +131,9 @@ class Master_gaji_bulanan extends MY_Controller
                 $r->nominal,
                 $r->start_at,
                 $r->end_at,
+                '<div style="text-align: center;">' . (($r->status == 1) ? 'Aktif' : (($r->status == 0) ? 'Nonaktif' : '')) . '</div>',
                 '<div style="text-align: center;">' . 
-                    '<button type="button" class="' . ($r->status == 1 ? 'btn btn-danger' : 'btn btn-success') . '" onclick="' . ($r->status == 1 ? 'nonaktif('.$r->id.')' : 'aktif('.$r->id.')' ) . '">' . 
+                    '<button type="button" class="' . ($r->status == 1 ? 'btn btn-danger' : 'btn btn-success') . '" onclick="' . ($r->status == 1 ? 'nonaktif('.$r->id.')' : 'aktif('.$r->id.')') . '">' . 
                         ($r->status == 1 ? 'Nonaktif' : 'Aktif') . 
                     '</button>' . 
                 '</div>'

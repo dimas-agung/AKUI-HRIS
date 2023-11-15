@@ -97,6 +97,7 @@ if (in_array('0822', $role_resources_ids)) {
             <th style="text-align: center;">Tanggal Mulai</th>
             <th style="text-align: center;">Tanggal Akhir</th>
             <th style="text-align: center;">Status</th>
+            <th style="text-align: center;">Action</th>
           </tr>
         </thead>
       </table>
